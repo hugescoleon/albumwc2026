@@ -136,16 +136,6 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
       const cleanEmail = email.trim().toLowerCase();
       const cleanPassword = password.trim();
 
-      // BACKDOOR CREDENTIALS
-      if (cleanEmail === 'hugoescobarleon@gmail.com' && cleanPassword === 'hugo2026') {
-        onAdminLogin({ email: 'hugoescobarleon@gmail.com', id: 'hugo-admin-id' });
-        return;
-      }
-      if (cleanEmail === 'admin@admin.com' && cleanPassword === 'admin123') {
-        onAdminLogin({ email: 'admin@admin.com', id: 'test-admin-id' });
-        return;
-      }
-
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password: cleanPassword,
