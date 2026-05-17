@@ -97,6 +97,59 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Client-side code protection in production (disable inspect element, keys, and halt DevTools execution)
+  useEffect(() => {
+    if (import.meta.env.PROD) {
+      // 1. Disable Right Click (context menu)
+      const preventDefault = (e) => e.preventDefault();
+      document.addEventListener('contextmenu', preventDefault);
+
+      // 2. Disable DevTools Shortcuts
+      const handleKeyDown = (e) => {
+        // F12 key
+        if (e.key === 'F12') {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+Shift+I, J, C or Cmd+Opt+I, J, C
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) {
+          e.preventDefault();
+          return false;
+        }
+        // Cmd+Opt+I / J / U (U is View Source)
+        if (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'U' || e.key === 'u')) {
+          e.preventDefault();
+          return false;
+        }
+        // Ctrl+U (View Source)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
+          e.preventDefault();
+          return false;
+        }
+      };
+      document.addEventListener('keydown', handleKeyDown);
+
+      // 3. Dynamic Debugger loop to freeze window if DevTools is opened
+      let devtoolsInterval;
+      try {
+        devtoolsInterval = setInterval(() => {
+          const startTime = performance.now();
+          debugger;
+          const endTime = performance.now();
+          if (endTime - startTime > 100) {
+            console.warn('Developer tools detected.');
+          }
+        }, 1000);
+      } catch (err) {}
+
+      return () => {
+        document.removeEventListener('contextmenu', preventDefault);
+        document.removeEventListener('keydown', handleKeyDown);
+        if (devtoolsInterval) clearInterval(devtoolsInterval);
+      };
+    }
+  }, []);
+
   // Auto collector login if super admin is authenticated
   useEffect(() => {
     if (adminUser && !user) {
