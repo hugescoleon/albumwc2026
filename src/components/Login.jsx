@@ -61,8 +61,8 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
   const [regName, setRegName] = useState('');
   const [regPhone, setRegPhone] = useState('+502 ');
   const [regEmail, setRegEmail] = useState('');
-  const [regDept, setRegDept] = useState('Guatemala');
-  const [regCountry, setRegCountry] = useState('Guatemala');
+  const [regDept, setRegDept] = useState('');
+  const [regCountry, setRegCountry] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regUseWhatsapp, setRegUseWhatsapp] = useState(false);
@@ -72,11 +72,7 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
 
   const handleCountryChange = (val) => {
     setRegCountry(val);
-    if (val === 'Guatemala') {
-      setRegDept('Guatemala');
-    } else {
-      setRegDept('');
-    }
+    setRegDept('');
   };
 
   const handlePhoneChange = (val) => {
@@ -136,6 +132,34 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
       const cleanEmail = email.trim().toLowerCase();
       const cleanPassword = password.trim();
 
+      // Check if email exists in profiles table
+      const { data: profileCheck } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', cleanEmail)
+        .maybeSingle();
+
+      if (!profileCheck) {
+        setError(
+          <span>
+            Tu correo no está registrado. Si deseas registrarte,{" "}
+            <button 
+              type="button"
+              onClick={() => {
+                setIsRegistering(true); 
+                setShowEmailLogin(true); 
+                setError(null);
+              }} 
+              className="underline font-black text-gold hover:text-gold-light cursor-pointer"
+            >
+              haz clic aquí
+            </button>
+          </span>
+        );
+        setTimeout(() => setError(''), 8000);
+        return;
+      }
+
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: cleanEmail,
         password: cleanPassword,
@@ -162,8 +186,9 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
       return;
     }
     
-    if (!regName.trim() || !regPhone.trim() || !regEmail.trim() || !regDept.trim() || !regCountry.trim() || !regPassword.trim()) {
-      setError('Completa todos los campos');
+    const cleanPhone = regPhone.trim().replace('+502 ', '').trim();
+    if (!regName.trim() || !regPhone.trim() || regPhone.trim() === '+502' || !cleanPhone || !regEmail.trim() || !regDept.trim() || !regCountry.trim() || !regPassword.trim()) {
+      setError('Por favor completa todos los campos obligatorios');
       setTimeout(() => setError(''), 3000);
       return;
     }
@@ -456,8 +481,11 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
                         required
                         value={regCountry}
                         onChange={(e) => handleCountryChange(e.target.value)}
-                        className="w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs cursor-pointer"
+                        className={`w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-gold transition-all text-xs cursor-pointer ${
+                          regCountry ? 'text-white' : 'text-gray-500'
+                        }`}
                       >
+                        <option value="" disabled className="bg-[#18181b] text-gray-500">Escoger País</option>
                         {COUNTRIES.map(c => (
                           <option key={c} value={c} className="bg-[#18181b] text-white">{c}</option>
                         ))}
@@ -470,13 +498,23 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
                     <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Departamento / Estado</label>
                     <div className="relative">
                       <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                      {regCountry === 'Guatemala' ? (
+                      {!regCountry ? (
+                        <select
+                          disabled
+                          className="w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-gray-500 focus:outline-none transition-all text-xs cursor-not-allowed"
+                        >
+                          <option value="">Escoger Departamento</option>
+                        </select>
+                      ) : regCountry === 'Guatemala' ? (
                         <select
                           required
                           value={regDept}
                           onChange={(e) => setRegDept(e.target.value)}
-                          className="w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs cursor-pointer"
+                          className={`w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-gold transition-all text-xs cursor-pointer ${
+                            regDept ? 'text-white' : 'text-gray-500'
+                          }`}
                         >
+                          <option value="" disabled className="bg-[#18181b] text-gray-500">Escoger Departamento</option>
                           {GUATEMALA_DEPARTMENTS.map(d => (
                             <option key={d} value={d} className="bg-[#18181b] text-white">{d}</option>
                           ))}
@@ -488,7 +526,7 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
                           value={regDept}
                           onChange={(e) => setRegDept(e.target.value)}
                           className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
-                          placeholder="Departamento / Estado"
+                          placeholder="Escoger Departamento / Estado"
                         />
                       )}
                     </div>

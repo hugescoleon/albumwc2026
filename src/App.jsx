@@ -248,6 +248,7 @@ function App() {
         {activeTab === 'dashboard' && isAdmin && (
           <Dashboard 
             stats={stats} 
+            user={user}
             onNavigateToSection={handleNavigateToSection} 
           />
         )}

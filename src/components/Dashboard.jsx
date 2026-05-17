@@ -1,6 +1,6 @@
 import React from 'react';
 import { GlassCard } from './GlassCard';
-import { Trophy, Package, CheckCircle2, TrendingUp, AlertCircle, Bookmark, Grid3x3, ArrowUpDown, Filter, SortDesc } from 'lucide-react';
+import { Trophy, Package, CheckCircle2, TrendingUp, AlertCircle, Bookmark, Grid3x3, ArrowUpDown, Filter, SortDesc, Copy, Check } from 'lucide-react';
 import { getSectionTheme } from '../utils/albumUtils';
 
 const SortButton = ({ active, onClick, icon, children }) => (
@@ -59,8 +59,17 @@ const StatItemFill = ({ percentage, collected, total }) => (
   </GlassCard>
 );
 
-export const Dashboard = ({ stats = {}, onNavigateToSection }) => {
+export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
   const [sortBy, setSortBy] = React.useState('page');
+  const [copied, setCopied] = React.useState(false);
+
+  const handleCopyCode = () => {
+    if (user?.collectorCode) {
+      navigator.clipboard.writeText(user.collectorCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   const sortedSections = React.useMemo(() => {
     if (!stats?.sectionsProgress) return [];
@@ -87,6 +96,44 @@ export const Dashboard = ({ stats = {}, onNavigateToSection }) => {
 
   return (
     <div className="space-y-8 pb-10">
+      {/* Welcome & Sharing Banner */}
+      {user?.collectorCode && (
+        <GlassCard className="p-4 sm:p-6 border-gold/30 relative overflow-hidden group">
+          <div className="absolute right-0 top-0 w-32 h-32 bg-gold/5 rounded-full blur-3xl -z-10 group-hover:bg-gold/10 transition-colors duration-500" />
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="space-y-1 text-left">
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight italic uppercase flex items-center gap-2">
+                ¡Hola, {user.displayName || 'Coleccionista'}! 👋
+              </h2>
+              <p className="text-xs text-gray-400 font-medium max-w-lg">
+                Este es tu código de coleccionista único. Compártelo con tus amigos para que puedan ingresar como invitados y ver el progreso de tu colección.
+              </p>
+            </div>
+            
+            <div className="flex items-center gap-3 self-start sm:self-center shrink-0">
+              <div className="bg-[#18181b] border border-white/10 rounded-xl px-4 py-2 flex flex-col gap-0.5 min-w-[140px] shadow-inner text-left">
+                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest leading-none">Código Compartido</span>
+                <span className="text-base font-black text-gold tracking-widest font-mono select-all">
+                  {user.collectorCode}
+                </span>
+              </div>
+              
+              <button
+                onClick={handleCopyCode}
+                className={`h-[42px] px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all active:scale-95 ${
+                  copied 
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                    : 'bg-gold text-dark hover:bg-gold-light hover:shadow-[0_0_15px_rgba(212,175,55,0.3)]'
+                }`}
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? 'Copiado' : 'Copiar'}
+              </button>
+            </div>
+          </div>
+        </GlassCard>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
         <StatItem 
