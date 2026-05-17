@@ -65,6 +65,7 @@ function App() {
     user, 
     stickers, 
     loading, 
+    syncStatus,
     platformConfig,
     toggleInAlbum, 
     updateStock, 
@@ -267,6 +268,28 @@ function App() {
           </div>
           
           <div className="flex items-center gap-3">
+            {user && (
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 select-none">
+                {syncStatus === 'saving' && (
+                  <>
+                    <div className="w-1.5 h-1.5 bg-yellow-400 animate-pulse rounded-full" />
+                    <span className="text-[9px] font-black text-yellow-400 uppercase tracking-widest">Sincronizando</span>
+                  </>
+                )}
+                {syncStatus === 'saved' && (
+                  <>
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_#10b981]" />
+                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Sincronizado</span>
+                  </>
+                )}
+                {syncStatus === 'error' && (
+                  <>
+                    <div className="w-1.5 h-1.5 bg-red-500 animate-ping rounded-full" />
+                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Sin Conexión</span>
+                  </>
+                )}
+              </div>
+            )}
             {adminUser && (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-gold/10 border border-gold/20 rounded-full">
                 <div className="w-2 h-2 bg-gold animate-pulse rounded-full" />

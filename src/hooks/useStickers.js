@@ -43,6 +43,7 @@ export const useStickers = () => {
   const [stickers, setStickers] = useState({});
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [syncStatus, setSyncStatus] = useState('saved'); // 'saved', 'saving', 'error'
   const [platformConfig, setPlatformConfig] = useState(DEFAULT_CONFIG);
 
   const configKey = 'collector_platform_config';
@@ -386,6 +387,20 @@ export const useStickers = () => {
     };
   }, []);
 
+  // Handle warning when closing tab while changes are actively syncing
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (syncStatus === 'saving') {
+        const msg = 'Tus cambios se están guardando en la nube. ¿Estás seguro de que deseas salir?';
+        e.preventDefault();
+        e.returnValue = msg;
+        return msg;
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [syncStatus]);
+
   const updatePlatformConfig = async (newConfig) => {
     setPlatformConfig(newConfig);
     localStorage.setItem(configKey, JSON.stringify(newConfig));
@@ -418,6 +433,7 @@ export const useStickers = () => {
     });
 
     if (user?.id) {
+      setSyncStatus('saving');
       try {
         await supabase
           .from('user_stickers')
@@ -428,8 +444,10 @@ export const useStickers = () => {
             quantity: newStock,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id,sticker_id' });
+        setSyncStatus('saved');
       } catch (err) {
         console.error("Error saving toggle in album to cloud:", err);
+        setSyncStatus('error');
       }
     }
   }, [user]);
@@ -460,6 +478,7 @@ export const useStickers = () => {
     });
 
     if (user?.id) {
+      setSyncStatus('saving');
       try {
         await supabase
           .from('user_stickers')
@@ -470,8 +489,10 @@ export const useStickers = () => {
             quantity: newStock,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id,sticker_id' });
+        setSyncStatus('saved');
       } catch (err) {
         console.error("Error saving stock updates to cloud:", err);
+        setSyncStatus('error');
       }
     }
   }, [user]);
@@ -522,6 +543,7 @@ export const useStickers = () => {
     stickers,
     loading,
     user,
+    syncStatus,
     platformConfig,
     loginAsDummy,
     logoutDummy,
