@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #D4AF37;
+  --color-gold-light: #F9E29C;
+  --color-green: #006233;
+  --color-green-dark: #004422;
+  --color-dark: #16171d;
+  --color-dark-lighter: #1f2028;
+  
+  --font-inter: "Inter", system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    --text: #9ca3af;
+    --text-h: #f3f4f6;
+    --bg: #111111;
+    --border: rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    @apply bg-[#0a0a0a] text-gray-400 font-inter;
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(0, 98, 51, 0.15) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(212, 175, 55, 0.1) 0px, transparent 50%);
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-lg border border-white/10 shadow-xl;
+  }
+  
+  .glass-gold {
+    @apply bg-gold/10 backdrop-blur-md border border-gold/30 shadow-lg;
+  }
+  
+  .glass-green {
+    @apply bg-green/10 backdrop-blur-md border border-green/30 shadow-lg;
+  }
+
+  .btn-gold {
+    @apply bg-gold text-dark font-bold py-2 px-4 rounded-lg hover:bg-gold-light transition-all active:scale-95 disabled:opacity-50 shadow-[0_0_15px_rgba(212,175,55,0.3)];
+  }
+
+  .btn-outline-gold {
+    @apply border border-gold text-gold font-semibold py-2 px-4 rounded-lg hover:bg-gold/10 transition-all active:scale-95;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-dark;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-white/10 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-gold/50;
+}

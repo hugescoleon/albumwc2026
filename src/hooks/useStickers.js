@@ -1,0 +1,466 @@
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { albumData } from '../data/albumData';
+import { initialStickerNames } from '../data/stickerNames';
+import { getSectionStickerIds } from '../utils/albumUtils';
+import { supabase } from '../lib/supabase';
+
+const generateCollectorCode = () => {
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // No O, 0, L, I, 1
+  let code = '';
+  for (let i = 0; i < 5; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
+
+const DEFAULT_CONFIG = {
+  appName: 'WORLDCUP COLLECTOR HUB',
+  appLogo: null,
+  adminEmails: ['hugoescobarleon@gmail.com'],
+  stickerNames: initialStickerNames,
+  sponsors: [
+    { id: 1, name: 'Nike', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Logo_NIKE.svg/250px-Logo_NIKE.svg.png', url: 'https://nike.com' },
+    { id: 2, name: 'Adidas', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Adidas_Logo.svg/250px-Adidas_Logo.svg.png', url: 'https://adidas.com' },
+    { id: 3, name: 'Coca-Cola', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Coca-Cola_logo.svg/250px-Coca-Cola_logo.svg.png', url: 'https://cocacola.com' },
+    { id: 4, name: 'Pepsi', logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Pepsi_logo_2023.svg/250px-Pepsi_logo_2023.svg.png', url: 'https://pepsi.com' },
+  ],
+  popupAd: {
+    frequency: 5,
+    ads: [
+      {
+        id: 1,
+        title: '¡Completa tu Álbum!',
+        image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?auto=format&fit=crop&q=80&w=800',
+        description: '¿Te faltan las más difíciles? Encuentra sobres exclusivos y ofertas especiales en nuestra tienda oficial.',
+        buttonText: 'Comprar Sobres',
+        url: '#'
+      }
+    ]
+  }
+};
+
+export const useStickers = () => {
+  const [stickers, setStickers] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [platformConfig, setPlatformConfig] = useState(DEFAULT_CONFIG);
+
+  const configKey = 'collector_platform_config';
+
+  // Load Platform Configurations from Supabase
+  const loadConfig = async () => {
+    let mergedConfig = { ...DEFAULT_CONFIG };
+    try {
+      const { data, error } = await supabase
+        .from('config')
+        .select('value')
+        .eq('id', 'platform_config')
+        .single();
+      
+      if (data && data.value) {
+        mergedConfig = {
+          ...mergedConfig,
+          ...data.value,
+          popupAd: {
+            ...mergedConfig.popupAd,
+            ...(data.value.popupAd || {}),
+            ads: data.value.popupAd?.ads || mergedConfig.popupAd?.ads || []
+          },
+          sponsors: data.value.sponsors || mergedConfig.sponsors || [],
+          stickerNames: { ...initialStickerNames, ...(data.value.stickerNames || {}) }
+        };
+      }
+    } catch (err) {
+      console.warn('Supabase not available, using defaults');
+    }
+
+    const savedConfig = localStorage.getItem(configKey);
+    if (savedConfig) {
+      try {
+        const parsed = JSON.parse(savedConfig);
+        mergedConfig = {
+          ...mergedConfig,
+          ...parsed,
+          popupAd: {
+            ...mergedConfig.popupAd,
+            ...(parsed.popupAd || {}),
+            ads: parsed.popupAd?.ads || mergedConfig.popupAd?.ads || []
+          },
+          sponsors: parsed.sponsors || mergedConfig.sponsors || [],
+          stickerNames: { ...mergedConfig.stickerNames, ...(parsed.stickerNames || {}) }
+        };
+      } catch (e) {
+        console.error("Error parsing local config", e);
+      }
+    }
+    setPlatformConfig(mergedConfig);
+  };
+
+  // Central Login/Sync Function
+  const loginAsDummy = async (role = 'USER', codeOrProfile = null) => {
+    setLoading(true);
+
+    if (role === 'ADMIN') {
+      let sessionUser = null;
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        sessionUser = session?.user;
+      } catch (e) {
+        console.error("Error getting Supabase session", e);
+      }
+
+      if (sessionUser) {
+        let loadedProfile = null;
+        try {
+          // 1. Fetch user profile from Supabase
+          const { data: profile, error: profileErr } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', sessionUser.id)
+            .single();
+
+          if (profile) {
+            loadedProfile = profile;
+          } else {
+            // Try to self-heal by inserting a profile row
+            const defaultName = sessionUser.email.split('@')[0];
+            const newCode = 'FWC-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+            
+            const { data: newProfile, error: insertErr } = await supabase
+              .from('profiles')
+              .insert({
+                id: sessionUser.id,
+                display_name: defaultName,
+                email: sessionUser.email,
+                phone: '',
+                department: 'Guatemala',
+                country: 'Guatemala',
+                collector_code: newCode,
+                use_whatsapp: false,
+                created_at: new Date().toISOString()
+              })
+              .select()
+              .single();
+
+            if (newProfile) {
+              loadedProfile = newProfile;
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching cloud collector profile:", err);
+        }
+
+        if (loadedProfile) {
+          // 2. Fetch stickers progress from Supabase
+          try {
+            const { data: userStickers } = await supabase
+              .from('user_stickers')
+              .select('sticker_id, in_album, quantity')
+              .eq('user_id', sessionUser.id);
+
+            const map = {};
+            if (userStickers) {
+              userStickers.forEach(s => {
+                map[s.sticker_id] = { inAlbum: s.in_album, stock: s.quantity };
+              });
+            }
+            setStickers(map);
+          } catch (err) {
+            console.error("Error fetching user stickers:", err);
+          }
+
+          const userData = {
+            id: sessionUser.id,
+            email: sessionUser.email,
+            role: 'ADMIN',
+            displayName: loadedProfile.display_name,
+            collectorCode: loadedProfile.collector_code,
+            phone: loadedProfile.phone,
+            department: loadedProfile.department,
+            country: loadedProfile.country
+          };
+          
+          localStorage.setItem('collector_user', JSON.stringify(userData));
+          setUser(userData);
+        } else {
+          // RESILIENT FALLBACK: If profiles table doesn't exist yet, do not block the app loading!
+          console.warn("Resilient Fallback: Profile tables not set up or query failed. Loading local session.");
+          const code = sessionUser.email === 'hugoescobarleon@gmail.com' ? 'HUGO-2026' : 'ADMIN-HUB';
+          const userData = {
+            id: sessionUser.id,
+            email: sessionUser.email,
+            role: 'ADMIN',
+            displayName: sessionUser.email === 'hugoescobarleon@gmail.com' ? 'Hugo Escobar' : 'Super Administrador',
+            collectorCode: code,
+            phone: '',
+            department: 'Guatemala',
+            country: 'Guatemala'
+          };
+          localStorage.setItem('collector_user', JSON.stringify(userData));
+          setUser(userData);
+          setStickers({});
+        }
+      } else {
+        // BACKDOOR FALLBACK
+        const mockProfile = typeof codeOrProfile === 'object' ? codeOrProfile : { email: 'guest@guest.com' };
+        const code = mockProfile.email === 'hugoescobarleon@gmail.com' ? 'HUGO-2026' : 'ADMIN-HUB';
+        const userData = {
+          id: mockProfile.id || 'mock-id',
+          email: mockProfile.email,
+          role: 'ADMIN',
+          displayName: mockProfile.email === 'hugoescobarleon@gmail.com' ? 'Hugo Escobar' : 'Super Administrador',
+          collectorCode: code,
+          phone: '+12345678',
+          department: 'Guatemala',
+          country: 'Guatemala'
+        };
+        localStorage.setItem('collector_user', JSON.stringify(userData));
+        setUser(userData);
+        setStickers({});
+      }
+    } else if (role === 'USER' && codeOrProfile) {
+      // Guest Collector View
+      const code = String(codeOrProfile).trim().toUpperCase();
+      try {
+        const { data: friendProfile, error: profileErr } = await supabase
+          .from('profiles')
+          .select('id, display_name')
+          .eq('collector_code', code)
+          .single();
+
+        if (friendProfile) {
+          const { data: friendStickers } = await supabase
+            .from('user_stickers')
+            .select('sticker_id, in_album, quantity')
+            .eq('user_id', friendProfile.id);
+
+          const map = {};
+          if (friendStickers) {
+            friendStickers.forEach(s => {
+              map[s.sticker_id] = { inAlbum: s.in_album, stock: s.quantity };
+            });
+          }
+          setStickers(map);
+
+          const userData = {
+            role: 'USER',
+            collectorCode: code,
+            displayName: `Visitando a: ${friendProfile.display_name}`
+          };
+          localStorage.setItem('collector_user', JSON.stringify(userData));
+          setUser(userData);
+        } else {
+          setLoading(false);
+          throw new Error('Código de coleccionista no encontrado');
+        }
+      } catch (err) {
+        setLoading(false);
+        throw err;
+      }
+    }
+    setLoading(false);
+  };
+
+  // Sign out
+  const logoutDummy = async () => {
+    await supabase.auth.signOut();
+    localStorage.removeItem('collector_user');
+    setUser(null);
+    setStickers({});
+  };
+
+  // Listen to Auth sessions and load configuration
+  useEffect(() => {
+    const initApp = async () => {
+      await loadConfig();
+
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await loginAsDummy('ADMIN');
+      } else {
+        const savedUserStr = localStorage.getItem('collector_user');
+        if (savedUserStr) {
+          try {
+            const parsed = JSON.parse(savedUserStr);
+            if (parsed.role === 'USER') {
+              // Restore guest view
+              await loginAsDummy('USER', parsed.collectorCode);
+            } else {
+              localStorage.removeItem('collector_user');
+              setUser(null);
+            }
+          } catch (e) {
+            console.error(e);
+          }
+        }
+        setLoading(false);
+      }
+    };
+
+    initApp();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        await loginAsDummy('ADMIN');
+      } else {
+        // Only reset if they were not a guest user
+        const savedUserStr = localStorage.getItem('collector_user');
+        if (savedUserStr) {
+          const parsed = JSON.parse(savedUserStr);
+          if (parsed.role !== 'USER') {
+            localStorage.removeItem('collector_user');
+            setUser(null);
+            setStickers({});
+          }
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const updatePlatformConfig = async (newConfig) => {
+    setPlatformConfig(newConfig);
+    localStorage.setItem(configKey, JSON.stringify(newConfig));
+    
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      try {
+        await supabase
+          .from('config')
+          .upsert({ id: 'platform_config', value: newConfig });
+      } catch (err) {
+        console.error("Cloud Save failed", err);
+      }
+    }
+  };
+
+  // Toggle Sticker in Album with live database updates
+  const toggleInAlbum = useCallback(async (stickerId) => {
+    let newInAlbum = false;
+    let newStock = 0;
+
+    setStickers(prev => {
+      const current = prev[stickerId] || { inAlbum: false, stock: 0 };
+      newInAlbum = !current.inAlbum;
+      newStock = current.stock;
+      return {
+        ...prev,
+        [stickerId]: { ...current, inAlbum: newInAlbum }
+      };
+    });
+
+    if (user?.id) {
+      try {
+        await supabase
+          .from('user_stickers')
+          .upsert({
+            user_id: user.id,
+            sticker_id: stickerId,
+            in_album: newInAlbum,
+            quantity: newStock,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id,sticker_id' });
+      } catch (err) {
+        console.error("Error saving toggle in album to cloud:", err);
+      }
+    }
+  }, [user]);
+
+  // Update Stock count with live database updates
+  const updateStock = useCallback(async (stickerId, delta) => {
+    let newInAlbum = false;
+    let newStock = 0;
+
+    setStickers(prev => {
+      const current = prev[stickerId] || { inAlbum: false, stock: 0 };
+      
+      if (delta > 0 && !current.inAlbum) {
+        newInAlbum = true;
+        newStock = 0;
+        return {
+          ...prev,
+          [stickerId]: { ...current, inAlbum: true, stock: 0 }
+        };
+      }
+
+      newInAlbum = current.inAlbum;
+      newStock = Math.max(0, (current.stock || 0) + delta);
+      return {
+        ...prev,
+        [stickerId]: { ...current, stock: newStock }
+      };
+    });
+
+    if (user?.id) {
+      try {
+        await supabase
+          .from('user_stickers')
+          .upsert({
+            user_id: user.id,
+            sticker_id: stickerId,
+            in_album: newInAlbum,
+            quantity: newStock,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id,sticker_id' });
+      } catch (err) {
+        console.error("Error saving stock updates to cloud:", err);
+      }
+    }
+  }, [user]);
+
+  const stats = useMemo(() => {
+    try {
+      const totalStickers = albumData?.sections?.reduce((acc, s) => acc + (s.total || 0), 0) || 1;
+      const stickersArray = Object.values(stickers || {});
+      
+      const collectedCount = stickersArray.filter(s => s?.inAlbum).length || 0;
+      const repeatedCount = stickersArray.reduce((acc, s) => acc + (s?.stock || 0), 0) || 0;
+      const uniqueRepeated = stickersArray.filter(s => (s?.stock || 0) > 0).length || 0;
+      const percentage = Math.round((collectedCount / totalStickers) * 100) || 0;
+
+      const sectionsProgress = (albumData?.sections || []).map(section => {
+        const sectionIds = getSectionStickerIds(section.id, section.total);
+        const collectedInSection = sectionIds.filter(id => stickers[id]?.inAlbum).length;
+        const totalInSection = section.total || 1;
+        return {
+          ...section,
+          collected: collectedInSection,
+          percent: Math.round((collectedInSection / totalInSection) * 100) || 0
+        };
+      });
+
+      const topSections = [...sectionsProgress]
+        .filter(s => s.percent < 100)
+        .sort((a, b) => (b.percent || 0) - (a.percent || 0))
+        .slice(0, 3);
+
+      return {
+        total: totalStickers,
+        collected: collectedCount,
+        missing: Math.max(0, totalStickers - collectedCount),
+        repeated: repeatedCount,
+        uniqueRepeated,
+        percentage,
+        sectionsProgress,
+        topSections
+      };
+    } catch (error) {
+      console.error("Error in stats calculation", error);
+      return { total: 0, collected: 0, missing: 0, repeated: 0, uniqueRepeated: 0, percentage: 0, sectionsProgress: [], topSections: [] };
+    }
+  }, [stickers]);
+
+  return {
+    stickers,
+    loading,
+    user,
+    platformConfig,
+    loginAsDummy,
+    logoutDummy,
+    toggleInAlbum,
+    updateStock,
+    stats,
+    updatePlatformConfig
+  };
+};
