@@ -102,7 +102,7 @@ export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
           <div className="absolute right-0 top-0 w-32 h-32 bg-gold/5 rounded-full blur-3xl -z-10 group-hover:bg-gold/10 transition-colors duration-500" />
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="space-y-1 text-left">
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight italic uppercase flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight italic flex items-center gap-2">
                 ¡Hola, {user.displayName || 'Coleccionista'}! 👋
               </h2>
               <p className="text-xs text-gray-400 font-medium max-w-lg">

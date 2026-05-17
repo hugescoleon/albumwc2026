@@ -123,6 +123,22 @@ export const useStickers = () => {
 
           if (profile) {
             loadedProfile = profile;
+            // Self-heal display name for Hugo's account if it's currently using the email prefix
+            if (profile.email === 'hugoescobarleon@gmail.com' && profile.display_name === 'hugoescobarleon') {
+              try {
+                const { data: updatedProfile } = await supabase
+                  .from('profiles')
+                  .update({ display_name: 'Hugo Escobar' })
+                  .eq('id', sessionUser.id)
+                  .select()
+                  .single();
+                if (updatedProfile) {
+                  loadedProfile = updatedProfile;
+                }
+              } catch (e) {
+                console.error("Error auto-updating Hugo name:", e);
+              }
+            }
           } else {
             // Try to self-heal by inserting a profile row
             const defaultName = sessionUser.email.split('@')[0];
