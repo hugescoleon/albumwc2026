@@ -97,8 +97,10 @@ export const useStickers = () => {
   };
 
   // Central Login/Sync Function
-  const loginAsDummy = async (role = 'USER', codeOrProfile = null) => {
-    setLoading(true);
+  const loginAsDummy = async (role = 'USER', codeOrProfile = null, silent = false) => {
+    if (!silent) {
+      setLoading(true);
+    }
 
     if (role === 'ADMIN') {
       let sessionUser = null;
@@ -317,7 +319,7 @@ export const useStickers = () => {
                 }
               }
               if (isDifferentUser) {
-                await loginAsDummy('ADMIN');
+                await loginAsDummy('ADMIN', null, true);
               }
             } else if (event === 'SIGNED_OUT') {
               // Only reset if they were not a guest user
