@@ -348,7 +348,7 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
                 {isRegistering ? 'Crear Cuenta' : 'Acceso Coleccionista'}
               </h2>
               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-                {isRegistering ? 'Regístrate para guardar tu colección en la nube' : 'Ingresa con tus credenciales de Supabase'}
+                {isRegistering ? 'Regístrate para guardar tu colección en la nube' : 'Ingresa con tu correo y contraseña'}
               </p>
             </div>
 
