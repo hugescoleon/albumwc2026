@@ -271,20 +271,63 @@ export const useStickers = () => {
 
   // Listen to Auth sessions and load configuration
   useEffect(() => {
-    const initApp = async () => {
-      await loadConfig();
+    let subscription = null;
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await loginAsDummy('ADMIN');
-      } else {
+    const initApp = async () => {
+      try {
+        await loadConfig();
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          await loginAsDummy('ADMIN');
+        } else {
+          const savedUserStr = localStorage.getItem('collector_user');
+          if (savedUserStr) {
+            try {
+              const parsed = JSON.parse(savedUserStr);
+              if (parsed.role === 'USER') {
+                // Restore guest view
+                await loginAsDummy('USER', parsed.collectorCode);
+              } else {
+                localStorage.removeItem('collector_user');
+                setUser(null);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+          setLoading(false);
+        }
+
+        // Only subscribe to auth changes if Supabase was successfully initialized
+        if (supabase?.auth) {
+          const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session) {
+              await loginAsDummy('ADMIN');
+            } else {
+              // Only reset if they were not a guest user
+              const savedUserStr = localStorage.getItem('collector_user');
+              if (savedUserStr) {
+                const parsed = JSON.parse(savedUserStr);
+                if (parsed.role !== 'USER') {
+                  localStorage.removeItem('collector_user');
+                  setUser(null);
+                  setStickers({});
+                }
+              }
+            }
+          });
+          subscription = data?.subscription;
+        }
+      } catch (err) {
+        console.warn("Failed to initialize app with Supabase. Operating in fallback mode:", err);
+        // Recover local state gracefully
         const savedUserStr = localStorage.getItem('collector_user');
         if (savedUserStr) {
           try {
             const parsed = JSON.parse(savedUserStr);
             if (parsed.role === 'USER') {
-              // Restore guest view
-              await loginAsDummy('USER', parsed.collectorCode);
+              setUser(parsed);
             } else {
               localStorage.removeItem('collector_user');
               setUser(null);
@@ -299,24 +342,11 @@ export const useStickers = () => {
 
     initApp();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session) {
-        await loginAsDummy('ADMIN');
-      } else {
-        // Only reset if they were not a guest user
-        const savedUserStr = localStorage.getItem('collector_user');
-        if (savedUserStr) {
-          const parsed = JSON.parse(savedUserStr);
-          if (parsed.role !== 'USER') {
-            localStorage.removeItem('collector_user');
-            setUser(null);
-            setStickers({});
-          }
-        }
+    return () => {
+      if (subscription && subscription.unsubscribe) {
+        subscription.unsubscribe();
       }
-    });
-
-    return () => subscription.unsubscribe();
+    };
   }, []);
 
   const updatePlatformConfig = async (newConfig) => {
