@@ -302,17 +302,36 @@ export const useStickers = () => {
         // Only subscribe to auth changes if Supabase was successfully initialized
         if (supabase?.auth) {
           const { data } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (session) {
-              await loginAsDummy('ADMIN');
-            } else {
+            if (event === 'SIGNED_IN') {
+              // Check if user is already logged in with the same ID to prevent double login / loading spinner
+              const savedUserStr = localStorage.getItem('collector_user');
+              let isDifferentUser = true;
+              if (savedUserStr) {
+                try {
+                  const parsed = JSON.parse(savedUserStr);
+                  if (parsed.id === session?.user?.id && parsed.role === 'ADMIN') {
+                    isDifferentUser = false;
+                  }
+                } catch (e) {
+                  console.error(e);
+                }
+              }
+              if (isDifferentUser) {
+                await loginAsDummy('ADMIN');
+              }
+            } else if (event === 'SIGNED_OUT') {
               // Only reset if they were not a guest user
               const savedUserStr = localStorage.getItem('collector_user');
               if (savedUserStr) {
-                const parsed = JSON.parse(savedUserStr);
-                if (parsed.role !== 'USER') {
-                  localStorage.removeItem('collector_user');
-                  setUser(null);
-                  setStickers({});
+                try {
+                  const parsed = JSON.parse(savedUserStr);
+                  if (parsed.role !== 'USER') {
+                    localStorage.removeItem('collector_user');
+                    setUser(null);
+                    setStickers({});
+                  }
+                } catch (e) {
+                  console.error(e);
                 }
               }
             }
