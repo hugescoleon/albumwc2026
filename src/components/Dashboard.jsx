@@ -95,38 +95,38 @@ export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
   if (!stats) return null;
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-4 sm:space-y-8 pb-10">
       {/* Welcome & Sharing Banner */}
       {user?.collectorCode && (
-        <GlassCard className="p-4 sm:p-6 border-gold/30 relative overflow-hidden group">
+        <GlassCard className="p-3 sm:p-6 border-gold/30 relative overflow-hidden group">
           <div className="absolute right-0 top-0 w-32 h-32 bg-gold/5 rounded-full blur-3xl -z-10 group-hover:bg-gold/10 transition-colors duration-500" />
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="space-y-1 text-left">
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight italic flex items-center gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="space-y-0.5 sm:space-y-1 text-left">
+              <h2 className="text-lg sm:text-2xl font-black text-white tracking-tight italic flex items-center gap-2">
                 ¡Hola, {user.displayName || 'Coleccionista'}! 👋
               </h2>
-              <p className="text-xs text-gray-400 font-medium max-w-lg">
+              <p className="text-[10px] sm:text-xs text-gray-400 font-medium max-w-lg leading-relaxed">
                 Este es tu código de coleccionista único. Compártelo con tus amigos para que puedan ingresar como invitados y ver el progreso de tu colección.
               </p>
             </div>
             
-            <div className="flex items-center gap-3 self-start sm:self-center shrink-0">
-              <div className="bg-[#18181b] border border-white/10 rounded-xl px-4 py-2 flex flex-col gap-0.5 min-w-[140px] shadow-inner text-left">
-                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest leading-none">Código Compartido</span>
-                <span className="text-base font-black text-gold tracking-widest font-mono select-all">
+            <div className="flex items-center gap-2.5 self-stretch sm:self-center justify-between sm:justify-start shrink-0">
+              <div className="bg-[#18181b] border border-white/10 rounded-xl px-3 py-1.5 flex flex-col gap-0.5 min-w-[120px] sm:min-w-[140px] shadow-inner text-left">
+                <span className="text-[7px] sm:text-[8px] font-black text-gray-500 uppercase tracking-widest leading-none">Código Compartido</span>
+                <span className="text-sm sm:text-base font-black text-gold tracking-widest font-mono select-all">
                   {user.collectorCode}
                 </span>
               </div>
               
               <button
                 onClick={handleCopyCode}
-                className={`h-[42px] px-4 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all active:scale-95 ${
+                className={`h-[38px] sm:h-[42px] px-3.5 sm:px-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
                   copied 
                     ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
                     : 'bg-gold text-dark hover:bg-gold-light hover:shadow-[0_0_15px_rgba(212,175,55,0.3)]'
                 }`}
               >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
+                {copied ? <Check size={12} /> : <Copy size={12} />}
                 {copied ? 'Copiado' : 'Copiar'}
               </button>
             </div>
@@ -135,21 +135,21 @@ export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
       )}
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
         <StatItem 
-          icon={<CheckCircle2 className="text-green-500" size={18} />}
+          icon={<CheckCircle2 className="text-green-500" size={16} />}
           label="Pegadas"
           value={stats.collected}
           subtext="En el álbum"
         />
         <StatItem 
-          icon={<AlertCircle className="text-red-400" size={18} />}
+          icon={<AlertCircle className="text-red-400" size={16} />}
           label="Faltantes"
           value={stats.missing}
           subtext="Por conseguir"
         />
         <StatItem 
-          icon={<Package className="text-gold" size={18} />}
+          icon={<Package className="text-gold" size={16} />}
           label="Repetidas"
           value={stats.repeated}
           subtext="Total copias"
@@ -158,20 +158,20 @@ export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
       </div>
 
       {/* Matrix Grid */}
-      <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-2">
-          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-            <Grid3x3 size={14} className="text-gold" /> Mapa de Colección
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-1">
+          <h3 className="text-[10px] sm:text-sm font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+            <Grid3x3 size={12} className="text-gold" /> Mapa de Colección
           </h3>
           
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
-            <SortButton active={sortBy === 'page'} onClick={() => setSortBy('page')} icon={<ArrowUpDown size={12}/>}>Por Página</SortButton>
-            <SortButton active={sortBy === 'group'} onClick={() => setSortBy('group')} icon={<Filter size={12}/>}>Grupo</SortButton>
-            <SortButton active={sortBy === 'percent-desc'} onClick={() => setSortBy('percent-desc')} icon={<SortDesc size={12}/>}>% Max</SortButton>
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+            <SortButton active={sortBy === 'page'} onClick={() => setSortBy('page')} icon={<ArrowUpDown size={10}/>}>Por Página</SortButton>
+            <SortButton active={sortBy === 'group'} onClick={() => setSortBy('group')} icon={<Filter size={10}/>}>Grupo</SortButton>
+            <SortButton active={sortBy === 'percent-desc'} onClick={() => setSortBy('percent-desc')} icon={<SortDesc size={10}/>}>% Max</SortButton>
           </div>
         </div>
         
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2.5 sm:gap-3">
           {(sortedSections || []).map((section) => {
             const theme = getSectionTheme(section.id);
             const isCompleted = section.percent === 100;

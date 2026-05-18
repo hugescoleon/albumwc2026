@@ -56,43 +56,38 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
     : [];
 
   return (
-    <div className={clsx("space-y-6 animate-in fade-in duration-500", (activeSection || viewMode === 'all' || search.trim() !== '') ? "pb-24" : "pb-2")}>
-      {/* HEADER CONTROLS */}
-      <div className="flex flex-col gap-4">
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+    <div className="space-y-4 pb-10">
+      {/* Search & Global Toggle */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1 relative">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" size={16} />
           <input 
             type="text"
             placeholder="Buscar por número o nombre..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-12 text-white focus:outline-none focus:ring-2 focus:ring-gold/50 transition-all"
+            className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-gold transition-colors text-sm"
           />
-          {search && (
-            <button onClick={() => handleSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500">
-              <X size={18} />
-            </button>
-          )}
         </div>
-
-        <div className="flex p-1.5 bg-white/5 rounded-2xl border border-white/5 w-full shadow-inner">
+        
+        <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 w-full sm:w-auto shadow-inner">
           <button 
-            onClick={() => setViewMode('sections')} 
+            onClick={() => setViewMode('sections')}
             className={clsx(
-              "flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-              viewMode === 'sections' ? "bg-gold text-dark shadow-lg" : "text-gray-500 hover:text-gray-300"
+              "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
+              viewMode === 'sections' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
             )}
           >
-            EQUIPOS
+            Equipos
           </button>
           <button 
-            onClick={() => setViewMode('all')} 
+            onClick={() => setViewMode('all')}
             className={clsx(
-              "flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-              viewMode === 'all' ? "bg-gold text-dark shadow-lg" : "text-gray-500 hover:text-gray-300"
+              "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
+              viewMode === 'all' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
             )}
           >
-            TODO
+            Todo
           </button>
         </div>
       </div>

@@ -340,7 +340,7 @@ function App() {
         )}
       </header>
 
-      <main className="max-w-4xl mx-auto p-4 pt-10">
+      <main className="max-w-4xl mx-auto p-3 sm:p-4 pt-3 sm:pt-10 pb-24 sm:pb-12">
         {activeTab === 'dashboard' && isAdmin && (
           <Dashboard 
             stats={stats} 
