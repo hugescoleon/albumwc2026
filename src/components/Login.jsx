@@ -97,7 +97,12 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
   };
 
   const generateCollectorCode = () => {
-    return 'FWC-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+    const allowedChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluye 0, 1, O, I
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += allowedChars.charAt(Math.floor(Math.random() * allowedChars.length));
+    }
+    return 'FWC-' + code;
   };
 
   const handleGuestLogin = async () => {
