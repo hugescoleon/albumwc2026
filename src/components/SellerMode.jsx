@@ -92,7 +92,7 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
   const totalCount = Object.values(itemsToShow).reduce((acc, items) => acc + items.length, 0);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300">
+    <div className="space-y-4 max-w-4xl mx-auto animate-in fade-in duration-300">
       {showChecklist && (
         <ChecklistModal 
           stickers={stickers} 
@@ -105,87 +105,89 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
       )}
 
       {/* Header & Stats */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            {mode === 'repeated' ? (
-              <Package className="text-gold shrink-0" size={24} />
-            ) : (
-              <ClipboardList className="text-blue-400 shrink-0" size={24} />
-            )}
-            {mode === 'repeated' ? (
-              isGuest ? `Estampas que Vende / Cambia` : 'Mi Inventario de Ventas'
-            ) : (
-              isGuest ? `Estampas que Necesita` : 'Mis Faltantes'
-            )}
-          </h2>
-          <p className="text-gray-500 text-sm mt-1">
-            {mode === 'repeated' ? (
-              isGuest ? (
-                <>Tiene <span className="text-gold font-bold">{totalCount}</span> estampas disponibles para ti.</>
-              ) : (
-                <>Tienes <span className="text-gold font-bold">{totalCount}</span> estampas disponibles para venta.</>
-              )
-            ) : (
-              isGuest ? (
-                <>Le faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas para completar su álbum.</>
-              ) : (
-                <>Te faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas por conseguir.</>
-              )
-            )}
-          </p>
-        </div>
-        
-        <div className="flex gap-2">
-          {isAdmin && (
-            <>
-              <button 
-                onClick={copyList}
-                className="flex-1 sm:flex-none px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 transition-all"
-              >
-                {copied ? <CheckCircle2 size={16} className="text-green-500" /> : <Copy size={16} />}
-                {copied ? '¡Copiado!' : 'Copiar'}
-              </button>
-              <button 
-                onClick={shareList}
-                className="flex-1 sm:flex-none px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] rounded-xl text-white text-sm font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-green-500/20"
-              >
-                <Share2 size={16} /> WhatsApp
-              </button>
-            </>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-lg sm:text-2xl font-black text-white flex items-center gap-2">
+          {mode === 'repeated' ? (
+            <Package className="text-gold shrink-0" size={20} />
+          ) : (
+            <ClipboardList className="text-blue-400 shrink-0" size={20} />
           )}
+          {mode === 'repeated' ? (
+            isGuest ? `Estampas que Vende / Cambia` : 'Mi Inventario de Ventas'
+          ) : (
+            isGuest ? `Estampas que Necesita` : 'Mis Faltantes'
+          )}
+        </h2>
+        <p className="text-gray-500 text-xs leading-none">
+          {mode === 'repeated' ? (
+            isGuest ? (
+              <>Tiene <span className="text-gold font-bold">{totalCount}</span> estampas disponibles para ti.</>
+            ) : (
+              <>Tienes <span className="text-gold font-bold">{totalCount}</span> estampas disponibles para venta.</>
+            )
+          ) : (
+            isGuest ? (
+              <>Le faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas para completar su álbum.</>
+            ) : (
+              <>Te faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas por conseguir.</>
+            )
+          )}
+        </p>
+      </div>
+
+      {/* Mode Selector - Sticky & Top */}
+      <div className="sticky top-[108px] sm:top-[72px] z-30 py-1.5 bg-black/95 backdrop-blur-xl -mx-4 px-4 sm:mx-0 sm:px-0 transition-all duration-300">
+        <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 w-full shadow-inner">
           <button 
-            onClick={() => setShowChecklist(true)}
-            className="flex-1 sm:flex-none px-4 py-2 bg-white text-dark rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all hover:bg-gold cursor-pointer select-none"
+            onClick={() => setMode('repeated')}
+            className={clsx(
+              "flex-1 py-2.5 px-2 sm:px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em] transition-all cursor-pointer",
+              mode === 'repeated' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
+            )}
           >
-            <Grid3x3 size={16} /> <span className="hidden sm:inline">Plantilla</span>
+            {isGuest ? 'SUS REPETIDAS' : 'MIS REPETIDAS'}
+          </button>
+          <button 
+            onClick={() => setMode('missing')}
+            className={clsx(
+              "flex-1 py-2.5 px-2 sm:px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em] transition-all cursor-pointer",
+              mode === 'missing' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
+            )}
+          >
+            {isGuest ? 'SUS FALTANTES (COMPRA)' : 'MIS FALTANTES'}
           </button>
         </div>
       </div>
 
-      {/* Mode Selector - Sticky */}
-      <div className="sticky top-[108px] sm:top-[72px] z-30 py-2 bg-black/95 backdrop-blur-xl -mx-4 px-4 sm:mx-0 sm:px-0 transition-all duration-300">
-        <div className="flex p-1.5 bg-white/5 rounded-2xl border border-white/5 w-full shadow-inner">
+      {/* Action Buttons Below Selector */}
+      <div className="flex gap-2 w-full">
+        {isAdmin && (
+          <>
+            <button 
+              onClick={copyList}
+              className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none"
+            >
+              {copied ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
+              {copied ? 'Copiado' : 'Copiar'}
+            </button>
+            <button 
+              onClick={shareList}
+              className="flex-1 px-3 py-2 bg-[#25D366] hover:bg-[#128C7E] rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-green-500/20 cursor-pointer select-none"
+            >
+              <Share2 size={14} /> WhatsApp
+            </button>
+          </>
+        )}
         <button 
-          onClick={() => setMode('repeated')}
+          onClick={() => setShowChecklist(true)}
           className={clsx(
-            "flex-1 py-3 px-2 sm:px-4 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em] transition-all cursor-pointer",
-            mode === 'repeated' ? "bg-gold text-dark font-extrabold shadow-md" : "text-gray-500 hover:text-gray-300"
+            "px-4 py-2 bg-white text-dark rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all hover:bg-gold cursor-pointer select-none",
+            isAdmin ? "flex-1" : "w-full"
           )}
         >
-          {isGuest ? 'SUS REPETIDAS' : 'MIS REPETIDAS'}
-        </button>
-        <button 
-          onClick={() => setMode('missing')}
-          className={clsx(
-            "flex-1 py-3 px-2 sm:px-4 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em] transition-all cursor-pointer",
-            mode === 'missing' ? "bg-gold text-dark font-extrabold shadow-md" : "text-gray-500 hover:text-gray-300"
-          )}
-        >
-          {isGuest ? 'SUS FALTANTES (COMPRA)' : 'MIS FALTANTES'}
+          <Grid3x3 size={14} /> Plantilla
         </button>
       </div>
-    </div>
 
       {/* Search Bar */}
       <div className="relative">
