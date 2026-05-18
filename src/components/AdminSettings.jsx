@@ -59,8 +59,8 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-xl p-4 overflow-y-auto">
-      <div className="max-w-2xl mx-auto space-y-8 pb-20">
+    <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl p-4 overflow-y-auto">
+      <div className="max-w-2xl mx-auto space-y-8 pb-24">
         <header className="flex items-center justify-between sticky top-0 bg-black/50 py-4 z-10 backdrop-blur-md">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gold rounded-xl flex items-center justify-center text-dark font-black">SA</div>
