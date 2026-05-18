@@ -12,7 +12,7 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
   const [copied, setCopied] = useState(false);
   const [mode, setMode] = useState('repeated'); // 'repeated' or 'missing'
   const [showChecklist, setShowChecklist] = useState(false);
-  const isGuest = role === 'GUEST';
+  const isGuest = role === 'GUEST' || role === 'USER';
   const isAdmin = role === 'ADMIN';
   const friendName = user?.displayName?.replace('Visitando a: ', '') || 'este coleccionista';
 
