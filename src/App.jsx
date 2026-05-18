@@ -320,21 +320,21 @@ function App() {
         </div>
 
         {user && (
-          <div className="bg-[#111111]/95 border-t border-white/10 py-2.5 px-4 text-center select-none shadow-inner">
-            <div className="inline-flex items-center justify-center gap-2 text-[10px] sm:text-xs">
+          <div className="bg-[#111111]/95 border-t border-white/10 py-1.5 px-4 text-center select-none shadow-inner">
+            <div className="inline-flex items-center justify-center gap-2">
               {user.role === 'USER' ? (
                 <>
                   <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee] shrink-0" />
-                  <span className="text-cyan-400 font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px]">VISITANDO A:</span>
-                  <span className="text-cyan-300 font-black italic tracking-wide text-xs sm:text-sm drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] uppercase">
+                  <span className="text-cyan-400 font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs">VISITANDO A:</span>
+                  <span className="text-cyan-300 font-black italic tracking-wide text-sm sm:text-base drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] uppercase">
                     {user.displayName.replace('Visitando a: ', '')}
                   </span>
                 </>
               ) : (
                 <>
                   <div className="w-2 h-2 rounded-full bg-gold animate-pulse shadow-[0_0_8px_#d4af37] shrink-0" />
-                  <span className="text-gold font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px]">MI ÁLBUM:</span>
-                  <span className="text-gold-light font-black italic tracking-wide text-xs sm:text-sm drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] uppercase">
+                  <span className="text-gold font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs">MI ÁLBUM:</span>
+                  <span className="text-gold-light font-black italic tracking-wide text-sm sm:text-base drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] uppercase">
                     {user.displayName || 'Coleccionista'}
                   </span>
                 </>
@@ -344,7 +344,7 @@ function App() {
         )}
       </header>
 
-      <main className="max-w-4xl mx-auto p-3 sm:p-4 pt-3 sm:pt-10 pb-24 sm:pb-12">
+      <main className="max-w-4xl mx-auto p-3 sm:p-4 pt-1 sm:pt-10 pb-24 sm:pb-12">
         {activeTab === 'dashboard' && isAdmin && (
           <Dashboard 
             stats={stats} 
