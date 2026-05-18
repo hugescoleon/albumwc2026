@@ -12,7 +12,9 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
   const [copied, setCopied] = useState(false);
   const [mode, setMode] = useState('repeated'); // 'repeated' or 'missing'
   const [showChecklist, setShowChecklist] = useState(false);
+  const isGuest = role === 'GUEST';
   const isAdmin = role === 'ADMIN';
+  const friendName = user?.displayName?.replace('Visitando a: ', '') || 'este coleccionista';
 
   const itemsToShow = useMemo(() => {
     // Generate all possible sticker IDs
@@ -46,7 +48,7 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
   }, [itemsToShow, searchTerm]);
 
   const generateTextList = () => {
-    const title = (appName || 'WORLD CUP ALBUM COLLECTOR').toUpperCase();
+    const title = (appName || 'WORLD CUP ALBUM 2026').toUpperCase();
     const isMissingMode = mode === 'missing';
     
     let text = isMissingMode 
@@ -90,7 +92,7 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
   const totalCount = Object.values(itemsToShow).reduce((acc, items) => acc + items.length, 0);
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-300">
       {showChecklist && (
         <ChecklistModal 
           stickers={stickers} 
@@ -105,15 +107,31 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
       {/* Header & Stats */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white flex items-center gap-2">
-            {mode === 'repeated' ? <Package className="text-gold" size={28} /> : <ClipboardList className="text-blue-400" size={28} />}
-            {mode === 'repeated' ? 'Inventario de Ventas' : 'Lista de Faltantes'}
+          <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+            {mode === 'repeated' ? (
+              <Package className="text-gold shrink-0" size={24} />
+            ) : (
+              <ClipboardList className="text-blue-400 shrink-0" size={24} />
+            )}
+            {mode === 'repeated' ? (
+              isGuest ? `Estampas que Vende / Cambia` : 'Mi Inventario de Ventas'
+            ) : (
+              isGuest ? `Estampas que Necesita` : 'Mis Faltantes'
+            )}
           </h2>
           <p className="text-gray-500 text-sm mt-1">
             {mode === 'repeated' ? (
-              <>Tienes <span className="text-gold font-bold">{totalCount}</span> estampas disponibles.</>
+              isGuest ? (
+                <>Tiene <span className="text-gold font-bold">{totalCount}</span> estampas disponibles para ti.</>
+              ) : (
+                <>Tienes <span className="text-gold font-bold">{totalCount}</span> estampas disponibles para venta.</>
+              )
             ) : (
-              <>Te faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas por conseguir.</>
+              isGuest ? (
+                <>Le faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas para completar su álbum.</>
+              ) : (
+                <>Te faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas por conseguir.</>
+              )
             )}
           </p>
         </div>
@@ -138,7 +156,7 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
           )}
           <button 
             onClick={() => setShowChecklist(true)}
-            className="flex-1 sm:flex-none px-4 py-2 bg-white text-dark rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all hover:bg-gold"
+            className="flex-1 sm:flex-none px-4 py-2 bg-white text-dark rounded-xl text-sm font-black flex items-center justify-center gap-2 transition-all hover:bg-gold cursor-pointer select-none"
           >
             <Grid3x3 size={16} /> <span className="hidden sm:inline">Plantilla</span>
           </button>
@@ -146,25 +164,25 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
       </div>
 
       {/* Mode Selector - Sticky */}
-      <div className="sticky top-[72px] z-30 py-2 bg-black/95 backdrop-blur-xl -mx-4 px-4 sm:mx-0 sm:px-0">
+      <div className="sticky top-[108px] sm:top-[72px] z-30 py-2 bg-black/95 backdrop-blur-xl -mx-4 px-4 sm:mx-0 sm:px-0 transition-all duration-300">
         <div className="flex p-1.5 bg-white/5 rounded-2xl border border-white/5 w-full shadow-inner">
         <button 
           onClick={() => setMode('repeated')}
           className={clsx(
-            "flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-            mode === 'repeated' ? "bg-gold text-dark" : "text-gray-500"
+            "flex-1 py-3 px-2 sm:px-4 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em] transition-all cursor-pointer",
+            mode === 'repeated' ? "bg-gold text-dark font-extrabold shadow-md" : "text-gray-500 hover:text-gray-300"
           )}
         >
-          Repetidas
+          {isGuest ? 'SUS REPETIDAS' : 'MIS REPETIDAS'}
         </button>
         <button 
           onClick={() => setMode('missing')}
           className={clsx(
-            "flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all",
-            mode === 'missing' ? "bg-gold text-dark" : "text-gray-500"
+            "flex-1 py-3 px-2 sm:px-4 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em] transition-all cursor-pointer",
+            mode === 'missing' ? "bg-gold text-dark font-extrabold shadow-md" : "text-gray-500 hover:text-gray-300"
           )}
         >
-          Lo que me falta
+          {isGuest ? 'SUS FALTANTES (COMPRA)' : 'MIS FALTANTES'}
         </button>
       </div>
     </div>
