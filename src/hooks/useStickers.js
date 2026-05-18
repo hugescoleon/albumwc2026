@@ -454,7 +454,7 @@ export const useStickers = () => {
         setSyncStatus('error');
       }
     }
-  }, [user]);
+  }, [user, stickers]);
 
   // Update Stock count with live database updates
   const updateStock = useCallback(async (stickerId, delta) => {
@@ -497,7 +497,7 @@ export const useStickers = () => {
         setSyncStatus('error');
       }
     }
-  }, [user]);
+  }, [user, stickers]);
 
   const stats = useMemo(() => {
     try {
