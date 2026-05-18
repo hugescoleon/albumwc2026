@@ -6,7 +6,7 @@ import { getSectionTheme, getSectionStickerIds } from '../utils/albumUtils';
 import { clsx } from 'clsx';
 
 export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initialSection, role, stickerNames = {} }) => {
-  const [activeSection, setActiveSection] = useState(initialSection || null);
+  const [activeSection, setActiveSection] = useState(initialSection || albumData.sections[0]?.id || null);
   const [search, setSearch] = useState('');
   const [viewMode, setViewMode] = useState('sections');
   const viewRef = React.useRef(null);

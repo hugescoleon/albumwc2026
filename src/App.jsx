@@ -173,7 +173,7 @@ function App() {
       if (isAdmin) {
         setActiveTab('dashboard');
       } else {
-        setActiveTab('seller');
+        setActiveTab('collection'); // Los invitados van directo a ver el Álbum del amigo
       }
     }
   }, [user, isAdmin]);
