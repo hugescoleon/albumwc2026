@@ -419,23 +419,21 @@ export const useStickers = () => {
 
   // Toggle Sticker in Album with live database updates
   const toggleInAlbum = useCallback(async (stickerId) => {
-    let newInAlbum = false;
-    let newStock = 0;
+    // Calculate new state first, synchronously
+    const current = stickers[stickerId] || { inAlbum: false, stock: 0 };
+    const newInAlbum = !current.inAlbum;
+    const newStock = current.stock;
 
-    setStickers(prev => {
-      const current = prev[stickerId] || { inAlbum: false, stock: 0 };
-      newInAlbum = !current.inAlbum;
-      newStock = current.stock;
-      return {
-        ...prev,
-        [stickerId]: { ...current, inAlbum: newInAlbum }
-      };
-    });
+    // Update UI immediately
+    setStickers(prev => ({
+      ...prev,
+      [stickerId]: { ...current, inAlbum: newInAlbum }
+    }));
 
     if (user?.id) {
       setSyncStatus('saving');
       try {
-        await supabase
+        const { error } = await supabase
           .from('user_stickers')
           .upsert({
             user_id: user.id,
@@ -444,6 +442,12 @@ export const useStickers = () => {
             quantity: newStock,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id,sticker_id' });
+        
+        if (error) {
+          console.error("Supabase upsert error:", error);
+          alert("Error de Supabase al guardar estampa: " + (error.message || JSON.stringify(error)));
+          throw error;
+        }
         setSyncStatus('saved');
       } catch (err) {
         console.error("Error saving toggle in album to cloud:", err);
@@ -454,33 +458,26 @@ export const useStickers = () => {
 
   // Update Stock count with live database updates
   const updateStock = useCallback(async (stickerId, delta) => {
-    let newInAlbum = false;
-    let newStock = 0;
+    // Calculate new state first, synchronously
+    const current = stickers[stickerId] || { inAlbum: false, stock: 0 };
+    let newInAlbum = current.inAlbum;
+    let newStock = Math.max(0, (current.stock || 0) + delta);
 
-    setStickers(prev => {
-      const current = prev[stickerId] || { inAlbum: false, stock: 0 };
-      
-      if (delta > 0 && !current.inAlbum) {
-        newInAlbum = true;
-        newStock = 0;
-        return {
-          ...prev,
-          [stickerId]: { ...current, inAlbum: true, stock: 0 }
-        };
-      }
+    if (delta > 0 && !current.inAlbum) {
+      newInAlbum = true;
+      newStock = 0;
+    }
 
-      newInAlbum = current.inAlbum;
-      newStock = Math.max(0, (current.stock || 0) + delta);
-      return {
-        ...prev,
-        [stickerId]: { ...current, stock: newStock }
-      };
-    });
+    // Update UI immediately
+    setStickers(prev => ({
+      ...prev,
+      [stickerId]: { ...current, inAlbum: newInAlbum, stock: newStock }
+    }));
 
     if (user?.id) {
       setSyncStatus('saving');
       try {
-        await supabase
+        const { error } = await supabase
           .from('user_stickers')
           .upsert({
             user_id: user.id,
@@ -489,6 +486,11 @@ export const useStickers = () => {
             quantity: newStock,
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id,sticker_id' });
+          
+        if (error) {
+          console.error("Supabase updateStock error:", error);
+          throw error;
+        }
         setSyncStatus('saved');
       } catch (err) {
         console.error("Error saving stock updates to cloud:", err);

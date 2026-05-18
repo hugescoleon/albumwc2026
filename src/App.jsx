@@ -223,7 +223,7 @@ function App() {
 
   const tabs = [
     { id: 'dashboard', label: 'Inicio', icon: LayoutDashboard, adminOnly: true },
-    { id: 'collection', label: 'Álbum', icon: Grid3x3, adminOnly: true },
+    { id: 'collection', label: 'Álbum', icon: Grid3x3, adminOnly: false },
     { id: 'seller', label: 'Intercambio', icon: ShoppingBag, adminOnly: false },
   ].filter(tab => isAdmin || !tab.adminOnly);
 
