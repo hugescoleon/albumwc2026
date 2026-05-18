@@ -162,7 +162,7 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
       {/* Action Buttons Below Selector - Animated on mode change */}
       <div 
         key={mode} 
-        className="flex gap-2 w-full animate-in fade-in slide-in-from-top-2 duration-300"
+        className="flex gap-2 w-full animate-fade-slide-down"
       >
         {isAdmin && (
           <>
