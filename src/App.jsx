@@ -251,20 +251,43 @@ function App() {
       )}
 
       <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 select-none min-w-0">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 select-none min-w-0 flex-1">
             {platformConfig.appLogo && (
-              <div className="h-8 flex items-center shrink-0">
+              <div className="h-9 w-9 flex items-center justify-center shrink-0">
                 <img 
                   src={platformConfig.appLogo} 
                   alt="App Logo" 
-                  className="h-8 max-w-[56px] sm:max-w-[64px] object-contain rounded-lg"
+                  className="h-9 w-9 object-contain rounded-lg border border-white/10"
                 />
               </div>
             )}
-            <h1 className="text-base sm:text-xl font-black text-gold tracking-tight italic uppercase truncate">
-              {platformConfig.appName}
-            </h1>
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-xs sm:text-base font-black text-gold tracking-tight italic uppercase truncate leading-tight">
+                {platformConfig.appName}
+              </h1>
+              {user && (
+                <div className="text-[9px] sm:text-[10px] font-bold text-gray-400 truncate flex items-center gap-1.5 mt-0.5 leading-none">
+                  {user.role === 'USER' ? (
+                    <>
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shrink-0 shadow-[0_0_6px_#22d3ee]" />
+                      <span className="text-cyan-400 font-black uppercase tracking-wider text-[8px] sm:text-[9px]">Álbum de:</span>
+                      <span className="text-gray-100 font-bold truncate max-w-[120px] sm:max-w-[200px]">
+                        {user.displayName.replace('Visitando a: ', '')}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="w-1.5 h-1.5 rounded-full bg-gold shrink-0 shadow-[0_0_6px_#d4af37]" />
+                      <span className="text-gold font-black uppercase tracking-wider text-[8px] sm:text-[9px]">Mi Álbum:</span>
+                      <span className="text-gray-100 font-bold truncate max-w-[120px] sm:max-w-[200px]">
+                        {user.displayName || 'Coleccionista'}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
