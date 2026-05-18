@@ -102,8 +102,8 @@ export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
           <div className="absolute right-0 top-0 w-32 h-32 bg-gold/5 rounded-full blur-3xl -z-10 group-hover:bg-gold/10 transition-colors duration-500" />
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div className="space-y-0.5 sm:space-y-1 text-left">
-              <h2 className="text-lg sm:text-2xl font-black text-white tracking-tight italic flex items-center gap-2">
-                ¡Hola, {user.displayName || 'Coleccionista'}! 👋
+              <h2 className="text-lg sm:text-2xl font-black text-white tracking-tight italic flex flex-wrap items-center gap-1.5 leading-tight">
+                ¡Hola, <span className="text-gold-light drop-shadow-[0_2px_5px_rgba(212,175,55,0.35)] uppercase">{user.displayName || 'Coleccionista'}</span>! 👋
               </h2>
               <p className="text-[10px] sm:text-xs text-gray-400 font-medium max-w-lg leading-relaxed">
                 Este es tu código de coleccionista único. Compártelo con tus amigos para que puedan ingresar como invitados y ver el progreso de tu colección.

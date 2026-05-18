@@ -320,19 +320,23 @@ function App() {
         </div>
 
         {user && (
-          <div className="bg-[#111111]/90 border-t border-white/5 py-2 px-4 text-center select-none shadow-inner">
-            <div className="inline-flex items-center justify-center gap-2 text-[10px] sm:text-xs font-bold">
+          <div className="bg-[#111111]/95 border-t border-white/10 py-2.5 px-4 text-center select-none shadow-inner">
+            <div className="inline-flex items-center justify-center gap-2 text-[10px] sm:text-xs">
               {user.role === 'USER' ? (
                 <>
-                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_6px_#22d3ee] shrink-0" />
-                  <span className="text-cyan-400 font-black uppercase tracking-[0.15em] text-[9px] sm:text-[10px]">Álbum de:</span>
-                  <span className="text-white font-extrabold uppercase tracking-wider">{user.displayName.replace('Visitando a: ', '')}</span>
+                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee] shrink-0" />
+                  <span className="text-cyan-400 font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px]">VISITANDO A:</span>
+                  <span className="text-cyan-300 font-black italic tracking-wide text-xs sm:text-sm drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] uppercase">
+                    {user.displayName.replace('Visitando a: ', '')}
+                  </span>
                 </>
               ) : (
                 <>
-                  <div className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse shadow-[0_0_6px_#d4af37] shrink-0" />
-                  <span className="text-gold font-black uppercase tracking-[0.15em] text-[9px] sm:text-[10px]">Mi Álbum:</span>
-                  <span className="text-white font-extrabold uppercase tracking-wider">{user.displayName || 'Coleccionista'}</span>
+                  <div className="w-2 h-2 rounded-full bg-gold animate-pulse shadow-[0_0_8px_#d4af37] shrink-0" />
+                  <span className="text-gold font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px]">MI ÁLBUM:</span>
+                  <span className="text-gold-light font-black italic tracking-wide text-xs sm:text-sm drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] uppercase">
+                    {user.displayName || 'Coleccionista'}
+                  </span>
                 </>
               )}
             </div>
