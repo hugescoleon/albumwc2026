@@ -251,49 +251,49 @@ function App() {
       )}
 
       <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 select-none">
+        <div className="max-w-4xl mx-auto px-2 sm:px-4 py-3 sm:py-4 flex items-center justify-between gap-1 sm:gap-4">
+          <div className="flex items-center gap-1 sm:gap-2 select-none min-w-0">
             {platformConfig.appLogo && (
-              <div className="h-8 flex items-center shrink-0">
+              <div className="h-6 sm:h-8 flex items-center shrink-0">
                 <img 
                   src={platformConfig.appLogo} 
                   alt="App Logo" 
-                  className="h-8 max-w-[64px] object-contain rounded-lg"
+                  className="h-6 sm:h-8 max-w-[48px] sm:max-w-[64px] object-contain rounded-lg"
                 />
               </div>
             )}
-            <h1 className="text-xl font-black text-gold tracking-tight italic uppercase">
+            <h1 className="text-xs sm:text-xl font-black text-gold tracking-tight italic uppercase truncate">
               {platformConfig.appName}
             </h1>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-3 shrink-0">
             {user && (
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 select-none">
+              <div className="flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2.5 py-1 rounded-full bg-white/5 border border-white/10 select-none">
                 {syncStatus === 'saving' && (
                   <>
-                    <div className="w-1.5 h-1.5 bg-yellow-400 animate-pulse rounded-full" />
-                    <span className="text-[9px] font-black text-yellow-400 uppercase tracking-widest">Sincronizando</span>
+                    <div className="w-1.5 h-1.5 bg-yellow-400 animate-pulse rounded-full shrink-0" />
+                    <span className="hidden sm:inline text-[9px] font-black text-yellow-400 uppercase tracking-widest">Sincronizando</span>
                   </>
                 )}
                 {syncStatus === 'saved' && (
                   <>
-                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_#10b981]" />
-                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Sincronizado</span>
+                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_#10b981] shrink-0" />
+                    <span className="hidden sm:inline text-[9px] font-black text-emerald-500 uppercase tracking-widest">Sincronizado</span>
                   </>
                 )}
                 {syncStatus === 'error' && (
                   <>
-                    <div className="w-1.5 h-1.5 bg-red-500 animate-ping rounded-full" />
-                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">Sin Conexión</span>
+                    <div className="w-1.5 h-1.5 bg-red-500 animate-ping rounded-full shrink-0" />
+                    <span className="hidden sm:inline text-[9px] font-black text-red-500 uppercase tracking-widest">Sin Conexión</span>
                   </>
                 )}
               </div>
             )}
             {adminUser && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-gold/10 border border-gold/20 rounded-full">
-                <div className="w-2 h-2 bg-gold animate-pulse rounded-full" />
-                <span className="text-[10px] font-black text-gold uppercase tracking-widest">
+              <div className="flex items-center gap-1 sm:gap-2 px-1.5 sm:px-3 py-1 sm:py-1.5 bg-gold/10 border border-gold/20 rounded-full">
+                <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-gold animate-pulse rounded-full shrink-0" />
+                <span className="hidden sm:inline text-[10px] font-black text-gold uppercase tracking-widest">
                   {isSuperAdmin ? 'Super Admin' : 'Coleccionista'}
                 </span>
               </div>
@@ -301,10 +301,10 @@ function App() {
             {isSuperAdmin && (
               <button 
                 onClick={() => setShowAdminPanel(true)}
-                className="p-2 hover:bg-gold/10 rounded-lg text-gold hover:text-gold-light transition-all duration-300 group"
+                className="shrink-0 p-1.5 sm:p-2 hover:bg-gold/10 rounded-lg text-gold hover:text-gold-light transition-all duration-300 group"
                 title="Panel de Super Administrador"
               >
-                <Settings size={20} className="group-hover:rotate-45 transition-transform duration-500" />
+                <Settings size={18} className="sm:w-5 sm:h-5 group-hover:rotate-45 transition-transform duration-500" />
               </button>
             )}
             <button 
@@ -312,9 +312,9 @@ function App() {
                 if (adminUser) await supabase.auth.signOut();
                 logoutDummy();
               }}
-              className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors"
+              className="shrink-0 p-1.5 sm:p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors"
             >
-              <LogOut size={20} />
+              <LogOut size={18} className="sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
