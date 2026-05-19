@@ -191,20 +191,56 @@ export const useStickers = () => {
 
           if (profile) {
             loadedProfile = profile;
-            // Self-heal display name for Hugo's account if it's currently using the email prefix
-            if (profile.email === 'hugoescobarleon@gmail.com' && profile.display_name === 'hugoescobarleon') {
+            
+            // Self-heal display names for existing/old users
+            const nameMappings = {
+              'hugesco@gmail.com': 'Hugo Escobar',
+              'hugoescobarleon@gmail.com': 'Hugo Escobar',
+              'verticetester@gmail.com': 'Vértice Tester',
+              'prueba2026@gmail.com': 'Prueba 2026',
+              'huntereg2023@gmail.com': 'Hunter EG',
+              'geescobar@elvallecolegio.edu.gt': 'G. Escobar'
+            };
+
+            const targetName = nameMappings[profile.email.toLowerCase()];
+            const isEmailPrefix = profile.display_name === profile.email.split('@')[0];
+            
+            if (targetName && profile.display_name !== targetName) {
+              // Apply specific map correction
               try {
                 const { data: updatedProfile } = await supabase
                   .from('profiles')
-                  .update({ display_name: 'Hugo Escobar' })
+                  .update({ display_name: targetName })
                   .eq('id', sessionUser.id)
                   .select()
                   .single();
                 if (updatedProfile) {
                   loadedProfile = updatedProfile;
+                  console.log("Self-healed profile name for old user:", targetName);
                 }
               } catch (e) {
-                console.error("Error auto-updating Hugo name:", e);
+                console.error("Error auto-updating name:", e);
+              }
+            } else if (isEmailPrefix) {
+              // General correction: Capitalize first letters of email prefix (e.g., "verticetester" -> "Verticetester")
+              const capitalized = profile.display_name
+                .split(' ')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
+                
+              try {
+                const { data: updatedProfile } = await supabase
+                  .from('profiles')
+                  .update({ display_name: capitalized })
+                  .eq('id', sessionUser.id)
+                  .select()
+                  .single();
+                if (updatedProfile) {
+                  loadedProfile = updatedProfile;
+                  console.log("Capitalized profile name automatically:", capitalized);
+                }
+              } catch (e) {
+                console.error("Error auto-capitalizing name:", e);
               }
             }
           } else {
