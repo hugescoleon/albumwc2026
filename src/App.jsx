@@ -16,11 +16,19 @@ import { GlassCard } from './components/GlassCard';
 import { supabase } from './lib/supabase';
 import { KoiInfoModal } from './components/KoiInfoModal';
 
-// LAZY LOAD HEAVY COMPONENTS
-const AdminSettings = lazy(() => import('./components/AdminSettings').then(m => ({ default: m.AdminSettings })));
-const SellerMode = lazy(() => import('./components/SellerMode').then(m => ({ default: m.SellerMode })));
+// RESILIENT LAZY LOAD HELPER: Auto-reloads page on chunk loading failure (e.g., after new Vercel deployments)
+const lazyWithRetry = (importFn) => {
+  return lazy(() => {
+    return importFn().catch((error) => {
+      console.error("Chunk loading failed, auto-healing by reloading page...", error);
+      window.location.reload();
+      return new Promise(() => {}); // Pending promise so React does not throw error before reload
+    });
+  });
+};
 
-
+const AdminSettings = lazyWithRetry(() => import('./components/AdminSettings').then(m => ({ default: m.AdminSettings })));
+const SellerMode = lazyWithRetry(() => import('./components/SellerMode').then(m => ({ default: m.SellerMode })));
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -35,6 +43,17 @@ class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     this.setState({ error, errorInfo });
     console.error("APP CRASH:", error, errorInfo);
+    
+    // Auto-heal chunk loading failures
+    const errorStr = error?.toString() || '';
+    if (
+      errorStr.includes('Importing a module script failed') || 
+      errorStr.includes('dynamically imported module') || 
+      errorStr.includes('Failed to fetch')
+    ) {
+      console.warn("Auto-healing chunk loading failure by reloading page...");
+      window.location.reload();
+    }
   }
 
   render() {
