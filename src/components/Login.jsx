@@ -223,7 +223,10 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
         options: {
           data: {
             display_name: regName.trim(),
-            full_name: regName.trim()
+            full_name: regName.trim(),
+            phone: regPhone.trim(),
+            department: regDept.trim(),
+            country: regCountry.trim()
           }
         }
       });

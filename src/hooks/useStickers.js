@@ -257,11 +257,11 @@ export const useStickers = () => {
               .from('profiles')
               .insert({
                 id: sessionUser.id,
-                display_name: defaultName,
+                display_name: sessionUser.user_metadata?.display_name || sessionUser.user_metadata?.full_name || defaultName,
                 email: sessionUser.email,
-                phone: '',
-                department: 'Guatemala',
-                country: 'Guatemala',
+                phone: sessionUser.user_metadata?.phone || '',
+                department: sessionUser.user_metadata?.department || 'Guatemala',
+                country: sessionUser.user_metadata?.country || 'Guatemala',
                 collector_code: newCode,
                 use_whatsapp: false,
                 created_at: new Date().toISOString()
