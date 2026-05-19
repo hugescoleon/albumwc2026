@@ -6,8 +6,7 @@ export const SponsorLogos = ({ sponsors = [] }) => {
   if (sponsors.length === 0) return null;
   
   return (
-    <div className="w-full py-8 mt-6 border-t border-white/5 bg-black/40 overflow-hidden">
-      <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] text-center mb-4">Esta App es patrocinada por:</p>
+    <div className="w-full py-6 mt-6 border-t border-white/5 bg-black/40 overflow-hidden">
       <div className="flex items-center justify-center gap-4 sm:gap-6 flex-wrap px-6">
         {sponsors.map(sponsor => (
           <a 
