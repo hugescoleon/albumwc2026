@@ -382,27 +382,41 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
                       placeholder="https://www.youtube.com/watch?v=..."
                     />
                   </div>
-                  <div>
-                    <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Título</label>
-                    <input 
-                      value={ad.title}
-                      onChange={e => {
-                        const newAds = localConfig.popupAd.ads.map(a => a.id === ad.id ? { ...a, title: e.target.value } : a);
-                        setLocalConfig(prev => ({ ...prev, popupAd: { ...prev.popupAd, ads: newAds } }));
-                      }}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-gold/30"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Texto Botón</label>
-                    <input 
-                      value={ad.buttonText}
-                      onChange={e => {
-                        const newAds = localConfig.popupAd.ads.map(a => a.id === ad.id ? { ...a, buttonText: e.target.value } : a);
-                        setLocalConfig(prev => ({ ...prev, popupAd: { ...prev.popupAd, ads: newAds } }));
-                      }}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-gold/30"
-                    />
+                  <div className="col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Título</label>
+                      <input 
+                        value={ad.title}
+                        onChange={e => {
+                          const newAds = localConfig.popupAd.ads.map(a => a.id === ad.id ? { ...a, title: e.target.value } : a);
+                          setLocalConfig(prev => ({ ...prev, popupAd: { ...prev.popupAd, ads: newAds } }));
+                        }}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-gold/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Texto Botón</label>
+                      <input 
+                        value={ad.buttonText}
+                        onChange={e => {
+                          const newAds = localConfig.popupAd.ads.map(a => a.id === ad.id ? { ...a, buttonText: e.target.value } : a);
+                          setLocalConfig(prev => ({ ...prev, popupAd: { ...prev.popupAd, ads: newAds } }));
+                        }}
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-gold/30"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Enlace de Destino (URL)</label>
+                      <input 
+                        value={ad.url || ''}
+                        onChange={e => {
+                          const newAds = localConfig.popupAd.ads.map(a => a.id === ad.id ? { ...a, url: e.target.value } : a);
+                          setLocalConfig(prev => ({ ...prev, popupAd: { ...prev.popupAd, ads: newAds } }));
+                        }}
+                        placeholder="https://..."
+                        className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-gold/30"
+                      />
+                    </div>
                   </div>
                   <div className="col-span-2">
                     <label className="text-[9px] text-gray-500 font-bold uppercase block mb-1">Descripción Corta</label>

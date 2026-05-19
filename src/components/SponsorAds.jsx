@@ -115,7 +115,9 @@ export const InterstitialAd = ({ isOpen, onClose, adConfig }) => {
             
             <a 
               href={adConfig.url || '#'}
-              className="w-full bg-gold hover:bg-gold-light text-dark font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-all transform active:scale-95 shadow-xl"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full bg-gold hover:bg-gold-light text-dark font-black py-3 rounded-xl flex items-center justify-center gap-2 transition-all transform active:scale-95 shadow-xl cursor-pointer"
             >
               {adConfig.buttonText} <ExternalLink size={16} />
             </a>
