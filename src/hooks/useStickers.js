@@ -377,6 +377,20 @@ export const useStickers = () => {
       try {
         await loadConfig();
 
+        // Check if there is a QR code / invite query parameter in the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeParam = urlParams.get('code') || urlParams.get('invite') || urlParams.get('codigo');
+
+        if (codeParam) {
+          console.log("Auto-logging in guest with code:", codeParam);
+          // Clean URL so the parameter doesn't linger
+          const cleanUrl = window.location.origin + window.location.pathname;
+          window.history.replaceState({}, document.title, cleanUrl);
+          
+          await loginAsDummy('USER', codeParam.trim().toUpperCase());
+          return;
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           await loginAsDummy('ADMIN');

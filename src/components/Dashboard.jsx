@@ -1,6 +1,6 @@
 import React from 'react';
 import { GlassCard } from './GlassCard';
-import { Trophy, Package, CheckCircle2, TrendingUp, AlertCircle, Bookmark, Grid3x3, ArrowUpDown, Filter, SortDesc, Copy, Check } from 'lucide-react';
+import { Trophy, Package, CheckCircle2, TrendingUp, AlertCircle, Bookmark, Grid3x3, ArrowUpDown, Filter, SortDesc, Copy, Check, QrCode, Share2, X } from 'lucide-react';
 import { getSectionTheme } from '../utils/albumUtils';
 
 const SortButton = ({ active, onClick, icon, children }) => (
@@ -62,6 +62,10 @@ const StatItemFill = ({ percentage, collected, total }) => (
 export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
   const [sortBy, setSortBy] = React.useState('page');
   const [copied, setCopied] = React.useState(false);
+  const [showQrModal, setShowQrModal] = React.useState(false);
+
+  const shareUrl = `${window.location.origin}${window.location.pathname}?code=${user?.collectorCode || ''}`;
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(shareUrl)}`;
 
   const handleCopyCode = () => {
     if (user?.collectorCode) {
@@ -118,17 +122,29 @@ export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
                 </span>
               </div>
               
-              <button
-                onClick={handleCopyCode}
-                className={`h-[38px] sm:h-[42px] px-3.5 sm:px-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
-                  copied 
-                    ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                    : 'bg-gold text-dark hover:bg-gold-light hover:shadow-[0_0_15px_rgba(212,175,55,0.3)]'
-                }`}
-              >
-                {copied ? <Check size={12} /> : <Copy size={12} />}
-                {copied ? 'Copiado' : 'Copiar'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCopyCode}
+                  className={`h-[38px] sm:h-[42px] px-3 sm:px-4 rounded-xl font-bold text-[10px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
+                    copied 
+                      ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+                      : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'
+                  }`}
+                  title="Copiar Código"
+                >
+                  {copied ? <Check size={12} /> : <Copy size={12} />}
+                  <span className="hidden xs:inline">{copied ? 'Copiado' : 'Copiar'}</span>
+                </button>
+
+                <button
+                  onClick={() => setShowQrModal(true)}
+                  className="h-[38px] sm:h-[42px] px-3 sm:px-4 bg-gold hover:bg-gold-light hover:shadow-[0_0_15px_rgba(212,175,55,0.3)] text-dark rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                  title="Compartir Código QR"
+                >
+                  <QrCode size={12} />
+                  <span>Código QR</span>
+                </button>
+              </div>
             </div>
           </div>
         </GlassCard>
@@ -219,6 +235,71 @@ export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
           })}
         </div>
       </div>
+
+      {/* GORGEOUS QR CODE INTERACTIVE OVERLAY MODAL */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fade-in">
+          <GlassCard className="w-full max-w-sm p-6 sm:p-8 border-gold/30 text-center relative space-y-6 animate-fade-slide-down">
+            {/* Close Button */}
+            <button 
+              onClick={() => setShowQrModal(false)}
+              className="absolute top-4 right-4 p-2 bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white rounded-xl transition-all cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="space-y-1">
+              <h3 className="text-lg font-black text-white uppercase italic tracking-tight">Tu Invitación QR ⚽️</h3>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                ¡Escanea para visitar mi colección!
+              </p>
+            </div>
+
+            {/* QR Code Container */}
+            <div className="relative inline-block mx-auto bg-white p-4 rounded-3xl shadow-[0_8px_30px_rgba(255,255,255,0.05)] border border-white/15 group overflow-hidden">
+              <img 
+                src={qrCodeUrl} 
+                alt="Código QR de Invitación" 
+                className="w-48 h-48 sm:w-56 sm:h-56 object-contain rounded-2xl select-none"
+              />
+              <div className="absolute inset-0 bg-gold/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl" />
+            </div>
+
+            {/* Info details */}
+            <div className="bg-[#18181b] border border-white/5 rounded-2xl p-3 space-y-1 text-left">
+              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Coleccionista</span>
+                <span className="text-xs font-black text-white uppercase">{user?.displayName || 'Mi Colección'}</span>
+              </div>
+              <div className="flex justify-between items-center pt-1.5">
+                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Código Único</span>
+                <span className="text-xs font-mono font-black text-gold tracking-wider">{user?.collectorCode}</span>
+              </div>
+            </div>
+
+            {/* Explanatory text */}
+            <p className="text-[9px] text-gray-400 font-semibold leading-relaxed">
+              Cualquier coleccionista puede escanear este código con su cámara para entrar directamente como invitado a ver tus repetidas y faltantes al instante.
+            </p>
+
+            {/* Copy Guest Link Button */}
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(shareUrl);
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-24 left-1/2 -translate-x-1/2 bg-green-500 text-white font-black text-[10px] uppercase py-2 px-4 rounded-full shadow-lg z-[1200] animate-fade-slide-down';
+                toast.innerText = 'Enlace de Invitado Copiado';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+              }}
+              className="w-full bg-gold hover:bg-gold-light text-dark font-black py-3 rounded-xl text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-[0_4px_15px_rgba(212,175,55,0.2)]"
+            >
+              <Share2 size={14} />
+              <span>Copiar Enlace de Invitación</span>
+            </button>
+          </GlassCard>
+        </div>
+      )}
 
     </div>
   );
