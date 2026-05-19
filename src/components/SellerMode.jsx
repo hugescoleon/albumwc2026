@@ -72,7 +72,8 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
       text += `└─ ${items.map(item => `*${item.num}*${!isMissingMode && item.stock > 1 ? ` (x${item.stock})` : ''}`).join(', ')}\n\n`;
     });
     
-    text += `✨ _Generado desde ${appName || 'Mi Inventario'}_`;
+    const originUrl = window.location.origin;
+    text += `✨ _Generado desde ${appName || 'Mi Inventario'}_\n👉 ¡Lleva el control de tu álbum tú también y regístrate gratis aquí: ${originUrl} ⚽🏆`;
     return text;
   };
 
