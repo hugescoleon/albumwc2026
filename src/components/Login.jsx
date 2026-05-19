@@ -216,10 +216,16 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
     try {
       const cleanEmail = regEmail.trim().toLowerCase();
 
-      // 1. Sign up user in Supabase Auth
+      // 1. Sign up user in Supabase Auth with metadata so any triggers see the real name
       const { data, error: authError } = await supabase.auth.signUp({
         email: cleanEmail,
         password: regPassword,
+        options: {
+          data: {
+            display_name: regName.trim(),
+            full_name: regName.trim()
+          }
+        }
       });
 
       if (authError) throw authError;
@@ -228,10 +234,10 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
         throw new Error('Error al registrar usuario');
       }
 
-      // 2. Insert profile metadata into profiles table
+      // 2. Upsert profile metadata into profiles table to prevent conflicts and ensure exact name
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
+        .upsert({
           id: data.user.id,
           display_name: regName.trim(),
           phone: regPhone.trim(),
@@ -241,7 +247,7 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
           collector_code: generateCollectorCode(),
           use_whatsapp: regUseWhatsapp,
           created_at: new Date().toISOString()
-        });
+        }, { onConflict: 'id' });
 
       if (profileError) throw profileError;
 

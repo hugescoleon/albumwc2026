@@ -271,7 +271,7 @@ export const useStickers = () => {
             id: sessionUser.id,
             email: sessionUser.email,
             role: 'ADMIN',
-            displayName: loadedProfile.display_name,
+            displayName: loadedProfile.display_name || sessionUser.user_metadata?.display_name || sessionUser.user_metadata?.full_name || sessionUser.email.split('@')[0],
             collectorCode: loadedProfile.collector_code,
             phone: loadedProfile.phone,
             department: loadedProfile.department,
@@ -288,7 +288,9 @@ export const useStickers = () => {
             id: sessionUser.id,
             email: sessionUser.email,
             role: 'ADMIN',
-            displayName: sessionUser.email === 'hugoescobarleon@gmail.com' ? 'Hugo Escobar' : 'Super Administrador',
+            displayName: sessionUser.email === 'hugoescobarleon@gmail.com' 
+              ? 'Hugo Escobar' 
+              : (sessionUser.user_metadata?.display_name || sessionUser.user_metadata?.full_name || 'Super Administrador'),
             collectorCode: code,
             phone: '',
             department: 'Guatemala',
