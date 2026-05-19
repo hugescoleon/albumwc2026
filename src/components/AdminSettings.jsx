@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { GlassCard } from './GlassCard';
 import { Save, Image as ImageIcon, Type, Target, Plus, Trash2, X, Users, Search } from 'lucide-react';
 import { albumData } from '../data/albumData';
@@ -14,7 +15,57 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
       ...(config?.popupAd || {})
     }
   });
+
+  const [activeTab, setActiveTab] = useState('config'); // 'config' | 'users'
+  const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalUsersCount, setTotalUsersCount] = useState(0);
+
+  const fetchUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const itemsPerPage = 25;
+      const from = (currentPage - 1) * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      
+      let query = supabase
+        .from('profiles')
+        .select('*', { count: 'exact' });
+        
+      if (searchTerm.trim() !== '') {
+        const term = `%${searchTerm.trim()}%`;
+        query = query.or(`display_name.ilike.${term},email.ilike.${term},collector_code.ilike.${term}`);
+      }
+      
+      const { data, count, error } = await query
+        .order('created_at', { ascending: false })
+        .range(from, to);
+        
+      if (!error && data) {
+        setUsers(data);
+        setTotalUsersCount(count || 0);
+      }
+    } catch (err) {
+      console.error("Error fetching users list:", err);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'users') {
+      fetchUsers();
+    }
+  }, [activeTab, currentPage, searchTerm]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
   const [stickerFilter, setStickerFilter] = useState('');
+  const totalPages = Math.ceil(totalUsersCount / 25) || 1;
 
   const handleSave = () => {
     onUpdate(localConfig);
@@ -71,8 +122,35 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
           </button>
         </header>
 
-        {/* APP BRANDING */}
-        <section className="space-y-4">
+        {/* TABS SELECTOR */}
+        <div className="flex gap-2 border-b border-white/5 pb-2">
+          <button
+            onClick={() => setActiveTab('config')}
+            className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer ${
+              activeTab === 'config' 
+                ? 'bg-gold text-dark font-black shadow-[0_2px_10px_rgba(212,175,55,0.2)]' 
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            Ajustes de Plataforma
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`px-4 py-2 text-xs font-black uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 cursor-pointer ${
+              activeTab === 'users' 
+                ? 'bg-gold text-dark font-black shadow-[0_2px_10px_rgba(212,175,55,0.2)]' 
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Users size={14} />
+            Usuarios Registrados
+          </button>
+        </div>
+
+        {activeTab === 'config' ? (
+          <>
+            {/* APP BRANDING */}
+            <section className="space-y-4">
           <div className="flex items-center gap-2 text-gold">
             <Type size={18} />
             <h3 className="text-xs font-black uppercase tracking-widest">Identidad de Marca</h3>
@@ -567,12 +645,111 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
           </GlassCard>
         </section>
 
-        <button 
-          onClick={handleSave}
-          className="w-full bg-gold hover:bg-gold-light text-dark font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-2xl transition-all sticky bottom-4 z-20"
-        >
-          <Save size={20} /> GUARDAR CONFIGURACIÓN
-        </button>
+            <button 
+              onClick={handleSave}
+              className="w-full bg-gold hover:bg-gold-light text-dark font-black py-4 rounded-2xl flex items-center justify-center gap-2 shadow-2xl transition-all sticky bottom-4 z-20 cursor-pointer"
+            >
+              <Save size={20} /> GUARDAR CONFIGURACIÓN
+            </button>
+          </>
+        ) : (
+          <section className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                <input 
+                  placeholder="Buscar por nombre, email o código..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-white text-xs outline-none focus:border-gold/30"
+                  value={searchTerm}
+                  onChange={handleSearchChange}
+                />
+              </div>
+              <div className="bg-white/5 border border-white/5 px-4 py-2 rounded-xl text-center shrink-0">
+                <span className="text-[9px] text-gray-500 font-black uppercase tracking-wider block">Registrados</span>
+                <span className="text-xs font-black text-gold block">{totalUsersCount} usuarios</span>
+              </div>
+            </div>
+
+            <GlassCard className="p-4 overflow-hidden border-white/5">
+              {usersLoading ? (
+                <div className="py-20 flex flex-col items-center justify-center gap-3">
+                  <div className="w-8 h-8 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Cargando coleccionistas...</span>
+                </div>
+              ) : users.length === 0 ? (
+                <div className="py-20 text-center text-gray-500 text-xs">
+                  No se encontraron usuarios registrados.
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-white/5 text-[9px] text-gray-500 font-black uppercase tracking-wider">
+                        <th className="pb-3 pr-2">Coleccionista</th>
+                        <th className="pb-3 px-2">Código</th>
+                        <th className="pb-3 px-2">Ubicación</th>
+                        <th className="pb-3 pl-2 text-right">Registro</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {users.map((u) => {
+                        const dateStr = u.created_at ? new Date(u.created_at).toLocaleDateString('es-ES', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric'
+                        }) : 'N/A';
+                        
+                        return (
+                          <tr key={u.id} className="text-xs hover:bg-white/5 transition-colors">
+                            <td className="py-3.5 pr-2">
+                              <div className="font-bold text-white leading-snug">{u.display_name || 'Sin nombre'}</div>
+                              <div className="text-[10px] text-gray-500 leading-none mt-0.5">{u.email}</div>
+                            </td>
+                            <td className="py-3.5 px-2">
+                              <span className="bg-gold/10 border border-gold/30 text-gold px-2 py-0.5 rounded font-mono text-[10px] font-bold">
+                                {u.collector_code || 'N/A'}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-2">
+                              <div className="text-gray-400">{u.department || 'N/A'}</div>
+                              <div className="text-[10px] text-gray-600 mt-0.5">{u.country || 'Guatemala'}</div>
+                            </td>
+                            <td className="py-3.5 pl-2 text-right text-gray-400 font-medium">
+                              {dateStr}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </GlassCard>
+
+            {/* PAGINATION CONTROLS */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between bg-black/30 border border-white/5 rounded-xl px-4 py-3">
+                <button
+                  disabled={currentPage === 1 || usersLoading}
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none text-white text-xs font-black uppercase rounded-lg transition-all cursor-pointer"
+                >
+                  Anterior
+                </button>
+                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">
+                  Página <span className="text-white font-black">{currentPage}</span> de <span className="text-white font-black">{totalPages}</span>
+                </span>
+                <button
+                  disabled={currentPage === totalPages || usersLoading}
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 disabled:opacity-30 disabled:pointer-events-none text-white text-xs font-black uppercase rounded-lg transition-all cursor-pointer"
+                >
+                  Siguiente
+                </button>
+              </div>
+            )}
+          </section>
+        )}
       </div>
     </div>
   );
