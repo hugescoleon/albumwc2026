@@ -231,34 +231,84 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
               <Target size={18} />
               <h3 className="text-xs font-black uppercase tracking-widest">Ventanas Emergentes (Ads)</h3>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-gray-500 font-bold uppercase">Cada</span>
-                <input 
-                  type="number"
-                  value={localConfig.popupAd.frequency}
-                  onChange={e => setLocalConfig(prev => ({ ...prev, popupAd: { ...prev.popupAd, frequency: parseInt(e.target.value) || 5 } }))}
-                  className="w-12 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-xs text-gold text-center outline-none"
-                />
-                <span className="text-[10px] text-gray-500 font-bold uppercase">clics</span>
-              </div>
-              <button 
-                onClick={() => {
-                  const newId = Math.max(...localConfig.popupAd.ads.map(a => a.id), 0) + 1;
-                  setLocalConfig(prev => ({
-                    ...prev,
-                    popupAd: {
-                      ...prev.popupAd,
-                      ads: [...prev.popupAd.ads, { id: newId, title: 'Nuevo Anuncio', image: '', buttonText: 'Saber Más', url: '#', description: '' }]
-                    }
-                  }));
-                }}
-                className="text-[10px] bg-white/5 hover:bg-white/10 text-white font-bold px-3 py-1 rounded-full flex items-center gap-1 transition-all"
-              >
-                <Plus size={12} /> AÑADIR AD
-              </button>
-            </div>
+            <button 
+              onClick={() => {
+                const newId = Math.max(...(localConfig.popupAd?.ads || []).map(a => a.id), 0) + 1;
+                setLocalConfig(prev => ({
+                  ...prev,
+                  popupAd: {
+                    ...prev.popupAd,
+                    ads: [...(prev.popupAd?.ads || []), { id: newId, title: 'Nuevo Anuncio', image: '', buttonText: 'Saber Más', url: '#', description: '' }]
+                  }
+                }));
+              }}
+              className="text-[10px] bg-gold hover:bg-gold-light text-dark font-black px-4 py-1.5 rounded-full flex items-center gap-1 transition-all shadow-[0_2px_10px_rgba(212,175,55,0.2)] cursor-pointer"
+            >
+              <Plus size={12} /> AÑADIR AD
+            </button>
           </div>
+
+          <GlassCard className="p-5 space-y-4">
+            <h4 className="text-[10px] text-gray-400 font-black uppercase tracking-wider border-b border-white/5 pb-2">Configuración de Disparadores</h4>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
+              {/* Clicks Frequency */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] text-gray-500 font-bold uppercase block">Frecuencia por Clics</label>
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <span className="text-[10px] text-gray-400">Cada</span>
+                  <input 
+                    type="number"
+                    min="1"
+                    value={localConfig.popupAd?.frequency || 5}
+                    onChange={e => setLocalConfig(prev => ({ 
+                      ...prev, 
+                      popupAd: { ...prev.popupAd, frequency: Math.max(1, parseInt(e.target.value) || 5) } 
+                    }))}
+                    className="w-12 bg-transparent text-xs text-gold text-center font-bold outline-none"
+                  />
+                  <span className="text-[10px] text-gray-400">clics</span>
+                </div>
+              </div>
+
+              {/* Time Frequency */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] text-gray-500 font-bold uppercase block">Frecuencia por Tiempo</label>
+                <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <span className="text-[10px] text-gray-400">Cada</span>
+                  <input 
+                    type="number"
+                    min="0"
+                    placeholder="0"
+                    value={localConfig.popupAd?.timeFrequency || 0}
+                    onChange={e => setLocalConfig(prev => ({ 
+                      ...prev, 
+                      popupAd: { ...prev.popupAd, timeFrequency: Math.max(0, parseInt(e.target.value) || 0) } 
+                    }))}
+                    className="w-12 bg-transparent text-xs text-gold text-center font-bold outline-none"
+                  />
+                  <span className="text-[10px] text-gray-400">segundos</span>
+                </div>
+                <p className="text-[8px] text-gray-600 font-medium leading-tight">Usa 0 para desactivar por tiempo.</p>
+              </div>
+
+              {/* Rotation Mode */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] text-gray-500 font-bold uppercase block">Modo de Rotación</label>
+                <select
+                  value={localConfig.popupAd?.rotationMode || 'sequential'}
+                  onChange={e => setLocalConfig(prev => ({
+                    ...prev,
+                    popupAd: { ...prev.popupAd, rotationMode: e.target.value }
+                  }))}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-white outline-none cursor-pointer focus:border-gold/30"
+                >
+                  <option value="sequential" className="bg-dark text-white">Secuencial (En Orden)</option>
+                  <option value="random" className="bg-dark text-white">Aleatorio</option>
+                </select>
+              </div>
+            </div>
+          </GlassCard>
           
           <div className="space-y-4">
             {localConfig.popupAd.ads.map((ad, index) => (

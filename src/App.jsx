@@ -79,6 +79,31 @@ function App() {
   const [selectedSection, setSelectedSection] = useState(null);
   const [showAd, setShowAd] = useState(false);
   const [tabChanges, setTabChanges] = useState(0);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
+  
+  // Background timer for popup ads
+  useEffect(() => {
+    const timeFrequency = platformConfig.popupAd?.timeFrequency || 0;
+    const ads = platformConfig.popupAd?.ads || [];
+    
+    if (timeFrequency > 0 && ads.length > 0 && user) {
+      const interval = setInterval(() => {
+        if (!showAd) {
+          const rotationMode = platformConfig.popupAd?.rotationMode || 'sequential';
+          setCurrentAdIndex(prevIndex => {
+            if (rotationMode === 'random') {
+              return Math.floor(Math.random() * ads.length);
+            } else {
+              return (prevIndex + 1) % ads.length;
+            }
+          });
+          setShowAd(true);
+        }
+      }, timeFrequency * 1000);
+      
+      return () => clearInterval(interval);
+    }
+  }, [platformConfig.popupAd?.timeFrequency, platformConfig.popupAd?.ads, user, showAd]);
   
   // SUPER ADMIN STATE
   const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -193,16 +218,27 @@ function App() {
   const handleTabChange = (tabId) => {
     setActiveTab(tabId);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTabChanges(prev => {
-      const next = prev + 1;
-      const frequency = platformConfig.popupAd?.frequency || 5;
-      const ads = platformConfig.popupAd?.ads || [];
-      
-      if (ads.length > 0 && next % frequency === 0) {
-        setShowAd(true);
-      }
-      return next;
-    });
+    
+    const ads = platformConfig.popupAd?.ads || [];
+    if (ads.length > 0) {
+      setTabChanges(prev => {
+        const next = prev + 1;
+        const frequency = platformConfig.popupAd?.frequency || 5;
+        
+        if (next % frequency === 0) {
+          const rotationMode = platformConfig.popupAd?.rotationMode || 'sequential';
+          setCurrentAdIndex(prevIndex => {
+            if (rotationMode === 'random') {
+              return Math.floor(Math.random() * ads.length);
+            } else {
+              return (prevIndex + 1) % ads.length;
+            }
+          });
+          setShowAd(true);
+        }
+        return next;
+      });
+    }
   };
 
   if (loading) {
@@ -239,9 +275,8 @@ function App() {
     { id: 'seller', label: 'Intercambio', icon: ShoppingBag, adminOnly: false },
   ].filter(tab => isAdmin || !tab.adminOnly);
 
-  const adConfig = platformConfig.popupAd || { frequency: 5, ads: [] };
-  const currentAdIndex = Math.floor(tabChanges / (adConfig.frequency || 5)) % (adConfig.ads?.length || 1);
-  const currentAd = adConfig.ads?.[currentAdIndex];
+  const adsList = platformConfig.popupAd?.ads || [];
+  const currentAd = adsList[currentAdIndex] || adsList[0] || null;
 
   return (
     <ErrorBoundary>
