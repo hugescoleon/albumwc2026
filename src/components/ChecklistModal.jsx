@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Printer, ClipboardList, Package } from 'lucide-react';
+import { X, Printer, ClipboardList, Package, Share2 } from 'lucide-react';
 import { albumData } from '../data/albumData';
 import { getSectionTheme, getSectionStickerIds, getStickerDisplayNum } from '../utils/albumUtils';
 
@@ -16,6 +16,58 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleWhatsAppShare = () => {
+    const title = (appName || 'WORLD CUP ALBUM 2026').toUpperCase();
+    const isMissingMode = mode === 'missing';
+    
+    let text = isMissingMode 
+      ? `👋 ¡Hola! Estas son las estampitas que me *FALTAN* para mi álbum *${title}*:\n\n`
+      : `👋 ¡Hola! Te comparto mi lista de *estampitas en venta o intercambio* en *${title}*:\n\n`;
+    
+    if (user) {
+      text += `👤 *Coleccionista:* ${user.displayName}\n`;
+      if (user.collectorCode) {
+        text += `🔑 *Código:* ${user.collectorCode}\n`;
+      }
+      text += `\n`;
+    }
+
+    albumData.sections.forEach(section => {
+      const activeNums = [];
+      const stickerIds = getSectionStickerIds(section.id, section.total);
+      
+      stickerIds.forEach(id => {
+        const data = stickers[id] || {};
+        const isActive = mode === 'repeated' ? data.stock > 0 : !data.inAlbum;
+        if (isActive) {
+          const num = getStickerDisplayNum(id);
+          const stockStr = (mode === 'repeated' && data.stock > 1) ? ` (x${data.stock})` : '';
+          activeNums.push(`*${num}*${stockStr}`);
+        }
+      });
+
+      if (activeNums.length > 0) {
+        const theme = getSectionTheme(section.id);
+        let flagEmoji = '⚽';
+        if (theme.flag) {
+          if (theme.flag === 'gb-eng') flagEmoji = '🏴󠁧󠁢󠁥󠁮󠁧󠁿';
+          else if (theme.flag === 'gb-sct') flagEmoji = '🏴󠁧󠁢󠁳󠁣󠁴󠁿';
+          else if (theme.flag.length === 2) {
+            flagEmoji = theme.flag.toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
+          }
+        }
+        text += `${flagEmoji} *${section.name}*\n`;
+        text += `└─ ${activeNums.join(', ')}\n\n`;
+      }
+    });
+    
+    text += `✨ _Generado desde ${appName || 'Mi Inventario'}_`;
+
+    const encodedText = encodeURIComponent(text);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const modalContent = (
@@ -45,14 +97,20 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
           
           <div className="flex gap-2">
             <button 
+              onClick={handleWhatsAppShare}
+              className="px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl transition-all flex items-center gap-2 text-[11px] font-black uppercase tracking-wider shadow-lg shadow-green-500/20 cursor-pointer select-none"
+            >
+              <Share2 size={16} /> <span className="hidden xs:inline">WhatsApp</span>
+            </button>
+            <button 
               onClick={handlePrint}
-              className="px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-xl transition-all flex items-center gap-2 text-[11px] font-black uppercase tracking-wider"
+              className="px-4 py-2 bg-gray-900 hover:bg-black text-white rounded-xl transition-all flex items-center gap-2 text-[11px] font-black uppercase tracking-wider cursor-pointer"
             >
               <Printer size={16} /> <span className="hidden xs:inline">Imprimir</span>
             </button>
             <button 
               onClick={onClose}
-              className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all"
+              className="p-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl transition-all cursor-pointer"
             >
               <X size={20} />
             </button>
