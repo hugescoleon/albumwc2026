@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { GlassCard } from './GlassCard';
-import { Save, Image as ImageIcon, Type, Target, Plus, Trash2, X, Users, Search } from 'lucide-react';
+import { Save, Image as ImageIcon, Type, Target, Plus, Trash2, X, Users, Search, Eye, Copy, Check } from 'lucide-react';
 import { albumData } from '../data/albumData';
 import { getSectionStickerIds } from '../utils/albumUtils';
 
@@ -22,6 +22,19 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
+  const [copiedUserId, setCopiedUserId] = useState(null);
+
+  const handleCopyLink = (code, id) => {
+    const link = `${window.location.origin}/?code=${code}`;
+    navigator.clipboard.writeText(link).then(() => {
+      setCopiedUserId(id);
+      setTimeout(() => setCopiedUserId(null), 2000);
+    });
+  };
+
+  const handleViewCollection = (code) => {
+    window.open(`${window.location.origin}/?code=${code}`, '_blank');
+  };
 
   const fetchUsers = async () => {
     setUsersLoading(true);
@@ -688,7 +701,8 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
                         <th className="pb-3 pr-2">Coleccionista</th>
                         <th className="pb-3 px-2">Código</th>
                         <th className="pb-3 px-2">Ubicación</th>
-                        <th className="pb-3 pl-2 text-right">Registro</th>
+                        <th className="pb-3 px-2">Registro</th>
+                        <th className="pb-3 pl-2 text-right">Acciones</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -714,8 +728,30 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
                               <div className="text-gray-400">{u.department || 'N/A'}</div>
                               <div className="text-[10px] text-gray-600 mt-0.5">{u.country || 'Guatemala'}</div>
                             </td>
-                            <td className="py-3.5 pl-2 text-right text-gray-400 font-medium">
+                            <td className="py-3.5 px-2 text-gray-400 font-medium">
                               {dateStr}
+                            </td>
+                            <td className="py-3.5 pl-2 text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <button
+                                  onClick={() => handleViewCollection(u.collector_code)}
+                                  className="p-1.5 hover:bg-gold/10 rounded text-gold hover:text-gold-light transition-all cursor-pointer flex items-center justify-center"
+                                  title="Ver Colección (Modo Invitado)"
+                                >
+                                  <Eye size={13} />
+                                </button>
+                                <button
+                                  onClick={() => handleCopyLink(u.collector_code, u.id)}
+                                  className="p-1.5 hover:bg-white/5 rounded text-gray-400 hover:text-white transition-all cursor-pointer flex items-center justify-center"
+                                  title="Copiar Enlace de Invitado"
+                                >
+                                  {copiedUserId === u.id ? (
+                                    <Check size={13} className="text-emerald-500" />
+                                  ) : (
+                                    <Copy size={13} />
+                                  )}
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
