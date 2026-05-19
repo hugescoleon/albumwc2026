@@ -22,7 +22,7 @@ export const KoiInfoModal = ({ isOpen, onClose, developerConfig }) => {
   const WHATSAPP_NUMBER = developerConfig?.whatsapp || "50245885656"; // Without + or spaces for the API link
   const WHATSAPP_DISPLAY = developerConfig?.whatsappDisplay || "+502 4588-5656";
   const ABOUT_TEXT = developerConfig?.aboutText || "Elevamos ideas innovadoras a experiencias de software premium y aplicaciones a medida de alto impacto visual y tecnológico.";
-  const THANKS_TEXT = developerConfig?.thanksText || "Nuestro más sincero agradecimiento a José Emilio Escobar Gómez, así como a los patrocinadores, socios estratégicos, empresas y colaboradores de la comunidad que han depositado su confianza y apoyo incondicional en el desarrollo, pruebas y puesta en marcha de esta gran plataforma para el coleccionismo 2026.";
+  const THANKS_TEXT = developerConfig?.thanksText || "Nuestro más sincero agradecimiento a todos los patrocinadores, socios estratégicos, empresas y colaboradores de la comunidad que han depositado su confianza y apoyo incondicional en el desarrollo, pruebas y puesta en marcha de esta gran plataforma para el coleccionismo 2026.";
   const WHATSAPP_MESSAGE = encodeURIComponent("¡Hola KOI Software! Vengo desde la App Collector 2026 y me interesa conocer más sobre sus servicios de desarrollo.");
 
   const modalContent = (
