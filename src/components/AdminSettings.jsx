@@ -23,6 +23,7 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalUsersCount, setTotalUsersCount] = useState(0);
   const [copiedUserId, setCopiedUserId] = useState(null);
+  const [stickerCounts, setStickerCounts] = useState({});
 
   const handleCopyLink = (code, id) => {
     const link = `${window.location.origin}/?code=${code}`;
@@ -59,6 +60,23 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
       if (!error && data) {
         setUsers(data);
         setTotalUsersCount(count || 0);
+        
+        if (data.length > 0) {
+          const userIds = data.map(u => u.id);
+          const { data: counts, error: countErr } = await supabase
+            .from('user_stickers')
+            .select('user_id, in_album')
+            .eq('in_album', true)
+            .in('user_id', userIds);
+            
+          if (!countErr && counts) {
+            const countsMap = {};
+            counts.forEach(s => {
+              countsMap[s.user_id] = (countsMap[s.user_id] || 0) + 1;
+            });
+            setStickerCounts(countsMap);
+          }
+        }
       }
     } catch (err) {
       console.error("Error fetching users list:", err);
@@ -718,6 +736,10 @@ export const AdminSettings = ({ config, onUpdate, onClose }) => {
                             <td className="py-3.5 pr-2">
                               <div className="font-bold text-white leading-snug">{u.display_name || 'Sin nombre'}</div>
                               <div className="text-[10px] text-gray-500 leading-none mt-0.5">{u.email}</div>
+                              <div className="text-[10px] text-gold/80 font-black tracking-wider uppercase mt-1 flex items-center gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse shrink-0" />
+                                {stickerCounts[u.id] || 0} pegadas
+                              </div>
                             </td>
                             <td className="py-3.5 px-2">
                               <span className="bg-gold/10 border border-gold/30 text-gold px-2 py-0.5 rounded font-mono text-[10px] font-bold">
