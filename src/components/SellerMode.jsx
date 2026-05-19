@@ -52,8 +52,8 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
     const isMissingMode = mode === 'missing';
     
     let text = isMissingMode 
-      ? `👋 ¡Hola! Estas son las estampitas que me *FALTAN* para mi álbum *${title}*:\n\n`
-      : `👋 ¡Hola! Te comparto mi lista de *estampitas disponibles* en *${title}*:\n\n`;
+      ? `👋 ¡Hola! Estoy buscando estas estampitas que me *FALTAN* para mi álbum *${title}*. ¡Me gustaría saber si las tienes disponibles para que intercambiemos o para comprártelas! ⚽️👇\n\n`
+      : `👋 ¡Hola! Te comparto mi lista de *estampitas disponibles* para venta o intercambio de mi álbum *${title}* ⚽️👇:\n\n`;
     
     Object.entries(itemsToShow).forEach(([sectionId, items]) => {
       const section = albumData.sections.find(s => s.id === sectionId);
