@@ -8,7 +8,7 @@ import { clsx } from 'clsx';
 export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initialSection, role, stickerNames = {} }) => {
   const [activeSection, setActiveSection] = useState(initialSection || albumData.sections[0]?.id || null);
   const [search, setSearch] = useState('');
-  const [viewMode, setViewMode] = useState('sections');
+  const [viewMode, setViewMode] = useState(role === 'GUEST' ? 'all' : 'sections');
   const viewRef = React.useRef(null);
 
   const selectSection = (sectionId) => {
@@ -27,7 +27,7 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
     if (initialSection) {
       selectSection(initialSection);
       setSearch('');
-      setViewMode('sections');
+      setViewMode(role === 'GUEST' ? 'all' : 'sections');
     }
   }, [initialSection]);
 
@@ -70,26 +70,28 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
           />
         </div>
         
-        <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 w-full sm:w-auto shadow-inner">
-          <button 
-            onClick={() => setViewMode('sections')}
-            className={clsx(
-              "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
-              viewMode === 'sections' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
-            )}
-          >
-            Equipos
-          </button>
-          <button 
-            onClick={() => setViewMode('all')}
-            className={clsx(
-              "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
-              viewMode === 'all' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
-            )}
-          >
-            Todo
-          </button>
-        </div>
+        {role !== 'GUEST' && (
+          <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 w-full sm:w-auto shadow-inner">
+            <button 
+              onClick={() => setViewMode('sections')}
+              className={clsx(
+                "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
+                viewMode === 'sections' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
+              )}
+            >
+              Equipos
+            </button>
+            <button 
+              onClick={() => setViewMode('all')}
+              className={clsx(
+                "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
+                viewMode === 'all' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
+              )}
+            >
+              Todo
+            </button>
+          </div>
+        )}
       </div>
 
       {viewMode === 'sections' ? (
