@@ -432,7 +432,7 @@ function App() {
             onToggle={toggleInAlbum} 
             onUpdateStock={updateStock} 
             initialSection={selectedSection}
-            role={isAdmin ? user?.role : 'GUEST'}
+            role={user?.role === 'ADMIN' ? 'ADMIN' : 'GUEST'}
             stickerNames={platformConfig?.stickerNames || {}}
           />
         )}

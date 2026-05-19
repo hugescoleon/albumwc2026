@@ -461,7 +461,9 @@ export const useStickers = () => {
               if (savedUserStr) {
                 try {
                   const parsed = JSON.parse(savedUserStr);
-                  if (parsed.id === session?.user?.id && parsed.role === 'ADMIN') {
+                  if (parsed.role === 'USER') {
+                    isDifferentUser = false;
+                  } else if (parsed.id === session?.user?.id && parsed.role === 'ADMIN') {
                     isDifferentUser = false;
                   }
                 } catch (e) {
