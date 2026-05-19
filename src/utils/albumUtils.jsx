@@ -82,8 +82,8 @@ export const getSectionStickerIds = (sectionId, total) => {
     if (sectionId === 'FWC') {
       return i === 0 ? 'FWC-00' : `FWC-${i}`;
     }
-    if (sectionId === 'MST') {
-      return `MST-${i + 9}`;
+    if (sectionId === 'MUS') {
+      return `MUS-${i + 9}`;
     }
     return `${sectionId}-${i + 1}`;
   });

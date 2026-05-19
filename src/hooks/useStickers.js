@@ -48,6 +48,73 @@ export const useStickers = () => {
 
   const configKey = 'collector_platform_config';
 
+  // Helper to save stickers to localStorage
+  const saveStickersLocally = (userId, stickersMap) => {
+    try {
+      localStorage.setItem(`collector_stickers_${userId}`, JSON.stringify(stickersMap));
+    } catch (e) {
+      console.error("Error saving stickers to localStorage:", e);
+    }
+  };
+
+  // Helper to load stickers from localStorage
+  const loadStickersLocally = (userId) => {
+    try {
+      const data = localStorage.getItem(`collector_stickers_${userId}`);
+      return data ? JSON.parse(data) : {};
+    } catch (e) {
+      console.error("Error reading stickers from localStorage:", e);
+      return {};
+    }
+  };
+
+  // Helper to sync all local stickers to cloud
+  const syncStickersToCloud = async (userId, stickersMap) => {
+    if (!userId) return;
+    setSyncStatus('saving');
+    try {
+      const records = Object.entries(stickersMap).map(([stickerId, data]) => ({
+        user_id: userId,
+        sticker_id: stickerId,
+        in_album: data.inAlbum || false,
+        quantity: data.stock || 0,
+        updated_at: new Date().toISOString()
+      }));
+
+      if (records.length === 0) {
+        setSyncStatus('saved');
+        return;
+      }
+
+      // Upsert full batch of stickers to Supabase
+      const { error } = await supabase
+        .from('user_stickers')
+        .upsert(records, { onConflict: 'user_id,sticker_id' });
+
+      if (error) throw error;
+      setSyncStatus('saved');
+    } catch (err) {
+      console.error("Error batch syncing stickers to cloud:", err);
+      setSyncStatus('error');
+    }
+  };
+
+  // Auto-sync when regaining connectivity
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log("Device went online. Re-syncing local stickers to Supabase...");
+      if (user?.id && user?.role === 'ADMIN') {
+        const localCache = loadStickersLocally(user.id);
+        if (Object.keys(localCache).length > 0) {
+          syncStickersToCloud(user.id, localCache);
+        }
+      }
+    };
+
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [user]);
+
   // Load Platform Configurations from Supabase
   const loadConfig = async () => {
     let mergedConfig = { ...DEFAULT_CONFIG };
@@ -175,6 +242,12 @@ export const useStickers = () => {
         }
 
         if (loadedProfile) {
+          // Optimistically load from localStorage first for instant rendering!
+          const localCache = loadStickersLocally(sessionUser.id);
+          if (Object.keys(localCache).length > 0) {
+            setStickers(localCache);
+          }
+
           // 2. Fetch stickers progress from Supabase
           try {
             const { data: userStickers } = await supabase
@@ -189,6 +262,7 @@ export const useStickers = () => {
               });
             }
             setStickers(map);
+            saveStickersLocally(sessionUser.id, map);
           } catch (err) {
             console.error("Error fetching user stickers:", err);
           }
@@ -222,7 +296,9 @@ export const useStickers = () => {
           };
           localStorage.setItem('collector_user', JSON.stringify(userData));
           setUser(userData);
-          setStickers({});
+          
+          const localCache = loadStickersLocally(sessionUser.id);
+          setStickers(localCache);
         }
       } else {
         // BACKDOOR FALLBACK
@@ -369,11 +445,10 @@ export const useStickers = () => {
         if (savedUserStr) {
           try {
             const parsed = JSON.parse(savedUserStr);
-            if (parsed.role === 'USER') {
-              setUser(parsed);
-            } else {
-              localStorage.removeItem('collector_user');
-              setUser(null);
+            setUser(parsed);
+            if (parsed.id) {
+              const localCache = loadStickersLocally(parsed.id);
+              setStickers(localCache);
             }
           } catch (e) {
             console.error(e);
@@ -430,10 +505,16 @@ export const useStickers = () => {
     const newStock = current.stock;
 
     // Update UI immediately
-    setStickers(prev => ({
-      ...prev,
-      [stickerId]: { ...current, inAlbum: newInAlbum }
-    }));
+    setStickers(prev => {
+      const next = {
+        ...prev,
+        [stickerId]: { ...current, inAlbum: newInAlbum }
+      };
+      if (user?.id) {
+        saveStickersLocally(user.id, next);
+      }
+      return next;
+    });
 
     if (user?.id) {
       setSyncStatus('saving');
@@ -450,7 +531,6 @@ export const useStickers = () => {
         
         if (error) {
           console.error("Supabase upsert error:", error);
-          alert("Error de Supabase al guardar estampa: " + (error.message || JSON.stringify(error)));
           throw error;
         }
         setSyncStatus('saved');
@@ -474,10 +554,16 @@ export const useStickers = () => {
     }
 
     // Update UI immediately
-    setStickers(prev => ({
-      ...prev,
-      [stickerId]: { ...current, inAlbum: newInAlbum, stock: newStock }
-    }));
+    setStickers(prev => {
+      const next = {
+        ...prev,
+        [stickerId]: { ...current, inAlbum: newInAlbum, stock: newStock }
+      };
+      if (user?.id) {
+        saveStickersLocally(user.id, next);
+      }
+      return next;
+    });
 
     if (user?.id) {
       setSyncStatus('saving');

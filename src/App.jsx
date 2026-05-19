@@ -84,6 +84,7 @@ function App() {
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showKoiModal, setShowKoiModal] = useState(false);
   const [adminUser, setAdminUser] = useState(null);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   // Check Supabase session on mount
   useEffect(() => {
@@ -96,6 +97,17 @@ function App() {
     });
 
     return () => subscription.unsubscribe();
+  }, []);
+
+  // Listen to browser network connectivity status changes
+  useEffect(() => {
+    const handleOnlineStatus = () => setIsOffline(!navigator.onLine);
+    window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOnlineStatus);
+    return () => {
+      window.removeEventListener('online', handleOnlineStatus);
+      window.removeEventListener('offline', handleOnlineStatus);
+    };
   }, []);
 
   // Client-side code protection in production (disable inspect element, keys, and halt DevTools execution)
@@ -269,17 +281,24 @@ function App() {
           
           <div className="flex items-center gap-3 shrink-0">
             {user && (
-              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 select-none">
+              <div 
+                className="flex items-center gap-1.5 px-2 py-1 sm:px-2.5 sm:py-1 rounded-full bg-white/5 border border-white/10 select-none cursor-help"
+                title={
+                  syncStatus === 'saving' ? 'Guardando en la nube...' :
+                  syncStatus === 'saved' ? 'Todos los cambios guardados' :
+                  'Sin conexión: Los cambios se guardarán cuando se restablezca la red'
+                }
+              >
                 {syncStatus === 'saving' && (
                   <>
                     <div className="w-1.5 h-1.5 bg-yellow-400 animate-pulse rounded-full shrink-0" />
-                    <span className="text-[9px] font-black text-yellow-400 uppercase tracking-widest">Sincronizando</span>
+                    <span className="hidden sm:inline text-[9px] font-black text-yellow-400 uppercase tracking-widest">Sincronizando</span>
                   </>
                 )}
                 {syncStatus === 'saved' && (
                   <>
                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_#10b981] shrink-0" />
-                    <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Sincronizado</span>
+                    <span className="hidden sm:inline text-[9px] font-black text-emerald-500 uppercase tracking-widest">Sincronizado</span>
                   </>
                 )}
                 {syncStatus === 'error' && (
@@ -434,6 +453,25 @@ function App() {
         isOpen={showKoiModal} 
         onClose={() => setShowKoiModal(false)} 
       />
+
+      {/* FLOATING OFFLINE WARNING BANNER */}
+      {isOffline && (
+        <div className="fixed bottom-[70px] left-4 right-4 z-[99] animate-fade-slide-down max-w-sm mx-auto">
+          <div className="bg-gradient-to-r from-red-950 via-amber-950 to-red-950 border border-amber-500/30 text-amber-200 px-4 py-3 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.5)] backdrop-blur-md flex items-start gap-3 select-none">
+            <div className="p-1 rounded-lg bg-amber-500/10 text-amber-400 shrink-0">
+              <svg className="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="text-[11px] font-black uppercase tracking-widest text-amber-300">Modo Sin Conexión Activo</h4>
+              <p className="text-[10px] text-amber-200/80 leading-relaxed font-semibold">
+                Tus cambios se guardan localmente. Se sincronizarán en la nube automáticamente al recuperar tu conexión.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       </div>
     </ErrorBoundary>
   );

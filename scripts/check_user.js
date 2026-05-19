@@ -20,37 +20,17 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function checkUser() {
-  console.log("Checking user: verticetester@gmail.com");
-  
-  // 1. Get profile
-  const { data: profile, error: profileErr } = await supabase
+  console.log("Checking profiles in the database...");
+  const { data: profiles, error: profileErr } = await supabase
     .from('profiles')
-    .select('*')
-    .eq('email', 'verticetester@gmail.com')
-    .single();
+    .select('*');
     
-  if (profileErr || !profile) {
-    console.error("Profile not found or error:", profileErr);
+  if (profileErr) {
+    console.error("Profile error:", profileErr);
     return;
   }
   
-  console.log("Found Profile:", { id: profile.id, code: profile.collector_code });
-  
-  // 2. Get stickers
-  const { data: stickers, error: stickersErr } = await supabase
-    .from('user_stickers')
-    .select('*')
-    .eq('user_id', profile.id);
-    
-  if (stickersErr) {
-    console.error("Error fetching stickers:", stickersErr);
-    return;
-  }
-  
-  console.log(`Found ${stickers?.length || 0} stickers saved in the database.`);
-  if (stickers && stickers.length > 0) {
-    console.log("Sample of stickers:", stickers.slice(0, 3));
-  }
+  console.log("Found Profiles:", profiles);
 }
 
 checkUser();
