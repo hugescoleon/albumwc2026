@@ -118,6 +118,8 @@ export const useStickers = () => {
   // Load Platform Configurations from Supabase
   const loadConfig = async () => {
     let mergedConfig = { ...DEFAULT_CONFIG };
+    let loadFromDbSuccess = false;
+
     try {
       const { data, error } = await supabase
         .from('config')
@@ -137,30 +139,37 @@ export const useStickers = () => {
           sponsors: data.value.sponsors || mergedConfig.sponsors || [],
           stickerNames: { ...initialStickerNames, ...(data.value.stickerNames || {}) }
         };
+        // Update local cache for offline fallback
+        localStorage.setItem(configKey, JSON.stringify(mergedConfig));
+        loadFromDbSuccess = true;
       }
     } catch (err) {
-      console.warn('Supabase not available, using defaults');
+      console.warn('Supabase not available, using defaults', err);
     }
 
-    const savedConfig = localStorage.getItem(configKey);
-    if (savedConfig) {
-      try {
-        const parsed = JSON.parse(savedConfig);
-        mergedConfig = {
-          ...mergedConfig,
-          ...parsed,
-          popupAd: {
-            ...mergedConfig.popupAd,
-            ...(parsed.popupAd || {}),
-            ads: parsed.popupAd?.ads || mergedConfig.popupAd?.ads || []
-          },
-          sponsors: parsed.sponsors || mergedConfig.sponsors || [],
-          stickerNames: { ...mergedConfig.stickerNames, ...(parsed.stickerNames || {}) }
-        };
-      } catch (e) {
-        console.error("Error parsing local config", e);
+    // Only load from localStorage if database fetch failed (e.g., user is offline)
+    if (!loadFromDbSuccess) {
+      const savedConfig = localStorage.getItem(configKey);
+      if (savedConfig) {
+        try {
+          const parsed = JSON.parse(savedConfig);
+          mergedConfig = {
+            ...mergedConfig,
+            ...parsed,
+            popupAd: {
+              ...mergedConfig.popupAd,
+              ...(parsed.popupAd || {}),
+              ads: parsed.popupAd?.ads || mergedConfig.popupAd?.ads || []
+            },
+            sponsors: parsed.sponsors || mergedConfig.sponsors || [],
+            stickerNames: { ...mergedConfig.stickerNames, ...(parsed.stickerNames || {}) }
+          };
+        } catch (e) {
+          console.error("Error parsing local config", e);
+        }
       }
     }
+
     setPlatformConfig(mergedConfig);
   };
 
