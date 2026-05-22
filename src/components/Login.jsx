@@ -718,13 +718,6 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
         <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.15em] pt-4 select-none">
           Desarrollado por <button onClick={onShowCredits} className="hover:text-gold transition-all underline decoration-white/10 hover:decoration-red-500 underline-offset-2 font-black cursor-pointer bg-transparent border-none p-0 outline-none"><span className="text-red-500">KOI</span> <span className="text-white/60">software</span></button>
         </p>
-        
-        <button 
-          onClick={onShowCredits}
-          className="mt-6 text-[10px] text-gray-500 hover:text-gold uppercase tracking-widest font-black transition-all underline decoration-white/10 hover:decoration-gold underline-offset-4 cursor-pointer bg-transparent border-none p-0 outline-none block mx-auto"
-        >
-          ℹ️ Soporte y Contacto
-        </button>
       </GlassCard>
     </div>
   );

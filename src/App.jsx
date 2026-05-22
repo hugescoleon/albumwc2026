@@ -61,19 +61,42 @@ class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-red-900 text-white p-8 overflow-auto">
-          <h1 className="text-3xl font-black mb-4">¡ERROR FATAL DETECTADO!</h1>
-          <p className="mb-4">Por favor, toma una captura de pantalla de este error y envíasela al asistente:</p>
-          <div className="bg-black/50 p-4 rounded-xl font-mono text-sm whitespace-pre-wrap">
-            <p className="text-red-400 font-bold">{this.state.error && this.state.error.toString()}</p>
-            <p className="text-gray-400 mt-4">{this.state.errorInfo && this.state.errorInfo.componentStack}</p>
+        <div className="min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-gold/10 via-dark to-dark text-white selection:bg-gold/30">
+          <div className="w-full max-w-md p-8 text-center space-y-6 bg-white/5 border border-white/10 backdrop-blur-lg rounded-2xl shadow-2xl transition-all duration-300">
+            <div className="relative inline-block select-none">
+              <div className="absolute inset-0 blur-2xl bg-gold/20 rounded-full animate-pulse"></div>
+              <div className="relative bg-[#0c0c0e] border border-gold/40 p-6 rounded-3xl">
+                <svg className="w-14 h-14 text-gold animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="space-y-2 select-none">
+              <h2 className="text-2xl font-black uppercase italic tracking-tight text-white">Algo salió mal</h2>
+              <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider leading-relaxed">
+                Hemos experimentado un inconveniente temporal en la aplicación.
+              </p>
+            </div>
+
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full bg-gold hover:bg-gold-light text-dark py-3.5 rounded-xl font-black text-sm uppercase tracking-widest transition-all shadow-[0_0_25px_rgba(212,175,55,0.15)] active:scale-95 cursor-pointer"
+            >
+              Recargar Aplicación
+            </button>
+
+            {/* Collapsible advanced details hidden from normal view */}
+            <details className="text-left pt-4 border-t border-white/5 group">
+              <summary className="text-[10px] text-gray-600 hover:text-gray-400 font-black uppercase tracking-widest cursor-pointer select-none outline-none">
+                Ver Detalles Técnicos
+              </summary>
+              <div className="mt-3 bg-black/40 border border-white/5 p-3 rounded-xl max-h-40 overflow-auto font-mono text-[9px] text-gray-500 whitespace-pre-wrap leading-normal scrollbar-thin">
+                <p className="font-bold text-red-400/80 mb-2">{this.state.error && this.state.error.toString()}</p>
+                <p>{this.state.errorInfo && this.state.errorInfo.componentStack}</p>
+              </div>
+            </details>
           </div>
-          <button 
-            onClick={() => window.location.reload()}
-            className="mt-6 bg-white text-red-900 px-6 py-2 rounded-lg font-bold"
-          >
-            Recargar Aplicación
-          </button>
         </div>
       );
     }
