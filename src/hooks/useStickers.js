@@ -441,8 +441,12 @@ export const useStickers = () => {
                 // Restore guest view
                 await loginAsDummy('USER', parsed.collectorCode);
               } else {
-                localStorage.removeItem('collector_user');
-                setUser(null);
+                // Restore admin view from localStorage for session persistence (offline & instant load)
+                setUser(parsed);
+                if (parsed.id) {
+                  const localCache = loadStickersLocally(parsed.id);
+                  setStickers(localCache);
+                }
               }
             } catch (e) {
               console.error(e);

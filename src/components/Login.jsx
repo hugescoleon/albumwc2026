@@ -52,6 +52,7 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
   // Toggle Views
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
   // Email Login States
   const [email, setEmail] = useState('');
@@ -175,6 +176,38 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
       onAdminLogin(data.user);
     } catch (err) {
       setError(err.message || 'Error al iniciar sesión');
+      setTimeout(() => setError(''), 4000);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!email.trim()) {
+      setError('Por favor ingresa tu correo electrónico');
+      setTimeout(() => setError(''), 3000);
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: window.location.origin,
+      });
+
+      if (resetError) throw resetError;
+
+      setError('¡Enlace enviado! Revisa tu correo para restablecer tu contraseña.');
+      setTimeout(() => {
+        setError('');
+        setShowForgotPassword(false);
+      }, 5000);
+    } catch (err) {
+      setError(err.message || 'Error al enviar el enlace');
       setTimeout(() => setError(''), 4000);
     } finally {
       setLoading(false);
@@ -347,26 +380,77 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 text-left">
             <button 
               onClick={() => {
-                setShowEmailLogin(false);
-                setIsRegistering(false);
+                if (showForgotPassword) {
+                  setShowForgotPassword(false);
+                } else {
+                  setShowEmailLogin(false);
+                  setIsRegistering(false);
+                }
                 setError('');
               }}
-              className="flex items-center gap-2 text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors mb-2"
+              className="flex items-center gap-2 text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors mb-2 cursor-pointer select-none"
             >
               <ArrowLeft size={16} />
               <span>Volver</span>
             </button>
 
-            <div className="space-y-1">
+            <div className="space-y-1 select-none">
               <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">
-                {isRegistering ? 'Crear Cuenta' : 'Acceso Coleccionista'}
+                {showForgotPassword 
+                  ? 'Recuperar Contraseña' 
+                  : isRegistering 
+                    ? 'Crear Cuenta' 
+                    : 'Acceso Coleccionista'}
               </h2>
               <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-                {isRegistering ? 'Regístrate para guardar tu colección en la nube' : 'Ingresa con tu correo y contraseña'}
+                {showForgotPassword 
+                  ? 'Ingresa tu correo para recibir un enlace de recuperación'
+                  : isRegistering 
+                    ? 'Regístrate para guardar tu colección en la nube' 
+                    : 'Ingresa con tu correo y contraseña'}
               </p>
             </div>
 
-            {!isRegistering ? (
+            {showForgotPassword ? (
+              /* RECOVERY FORM */
+              <form onSubmit={handleForgotPassword} className="space-y-4 pt-2">
+                <div className="space-y-2">
+                  <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Correo Electrónico</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    <input 
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
+                      placeholder="ejemplo@correo.com"
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-800 disabled:text-gray-600 text-dark py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all mt-6 shadow-[0_0_20px_rgba(212,175,55,0.15)] cursor-pointer"
+                >
+                  {loading ? <Loader2 className="animate-spin" size={20} /> : 'ENVIAR ENLACE DE RECUPERACIÓN'}
+                </button>
+
+                <div className="text-center pt-2">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setShowForgotPassword(false);
+                      setError('');
+                    }}
+                    className="text-gold hover:text-gold-light text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer bg-transparent border-none p-0 outline-none"
+                  >
+                    Volver al Inicio de Sesión
+                  </button>
+                </div>
+              </form>
+            ) : !isRegistering ? (
               /* LOGIN FORM */
               <form onSubmit={handleEmailLogin} className="space-y-4 pt-2">
                 <div className="space-y-2">
@@ -385,7 +469,19 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Contraseña</label>
+                  <div className="flex justify-between items-center ml-1 select-none">
+                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Contraseña</label>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setShowForgotPassword(true);
+                        setError('');
+                      }}
+                      className="text-[10px] text-gold hover:text-gold-light font-black uppercase tracking-widest cursor-pointer bg-transparent border-none p-0 outline-none transition-colors"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                     <input 
@@ -619,8 +715,8 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
           </div>
         )}
 
-        <p className="text-[9px] text-gray-600 uppercase tracking-[0.2em] pt-4 select-none">
-          Acepto compartir mis datos para uso exclusivo de la app
+        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.15em] pt-4 select-none">
+          Desarrollado por <button onClick={onShowCredits} className="hover:text-gold transition-all underline decoration-white/10 hover:decoration-red-500 underline-offset-2 font-black cursor-pointer bg-transparent border-none p-0 outline-none"><span className="text-red-500">KOI</span> <span className="text-white/60">software</span></button>
         </p>
         
         <button 

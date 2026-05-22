@@ -9,7 +9,9 @@ import {
   ShoppingBag, 
   LogOut,
   User as UserIcon,
-  Settings
+  Settings,
+  Lock,
+  Loader2
 } from 'lucide-react';
 import { SponsorLogos, InterstitialAd } from './components/SponsorAds';
 import { GlassCard } from './components/GlassCard';
@@ -130,14 +132,81 @@ function App() {
   const [adminUser, setAdminUser] = useState(null);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
+  // PASSWORD RESET STATE
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetError, setResetError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState('');
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!resetPassword.trim()) {
+      setResetError('Por favor ingresa tu nueva contraseña');
+      setTimeout(() => setResetError(''), 3000);
+      return;
+    }
+    if (resetPassword !== resetConfirmPassword) {
+      setResetError('Las contraseñas no coinciden');
+      setTimeout(() => setResetError(''), 3000);
+      return;
+    }
+    if (resetPassword.length < 6) {
+      setResetError('La contraseña debe tener mínimo 6 caracteres');
+      setTimeout(() => setResetError(''), 3000);
+      return;
+    }
+
+    setResetLoading(true);
+    setResetError('');
+    setResetSuccess('');
+
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: resetPassword.trim()
+      });
+
+      if (error) throw error;
+
+      setResetSuccess('¡Tu contraseña ha sido restablecida con éxito!');
+      setTimeout(async () => {
+        setIsResettingPassword(false);
+        setResetPassword('');
+        setResetConfirmPassword('');
+        setResetSuccess('');
+        
+        // Sign out to force clean login with new credentials
+        await supabase.auth.signOut();
+        if (logoutDummy) {
+          logoutDummy();
+        }
+        window.location.reload();
+      }, 3000);
+    } catch (err) {
+      setResetError(err.message || 'Error al restablecer la contraseña');
+      setTimeout(() => setResetError(''), 4000);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
   // Check Supabase session on mount
   useEffect(() => {
+    // Backup check for recovery hash to prevent UI flashes
+    if (window.location.hash && window.location.hash.includes('type=recovery')) {
+      setIsResettingPassword(true);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAdminUser(session?.user ?? null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setAdminUser(session?.user ?? null);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsResettingPassword(true);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -264,6 +333,84 @@ function App() {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="w-12 h-12 border-4 border-gold border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (isResettingPassword) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-green/20 via-dark to-dark animate-in fade-in duration-300">
+        <GlassCard className="w-full max-w-md p-8 text-center space-y-6 border-gold/20 relative transition-all duration-300">
+          {resetError && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-[10px] font-black py-2 px-4 rounded-full shadow-lg animate-in fade-in slide-in-from-top-4 duration-300">
+              {resetError}
+            </div>
+          )}
+          {resetSuccess && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-emerald-500 text-white text-[10px] font-black py-2 px-4 rounded-full shadow-lg animate-in fade-in slide-in-from-top-4 duration-300">
+              {resetSuccess}
+            </div>
+          )}
+
+          <div className="relative inline-block select-none">
+            <div className="absolute inset-0 blur-2xl bg-gold/20 rounded-full animate-pulse"></div>
+            <div className="relative bg-dark border border-gold/50 p-6 rounded-3xl">
+              <Lock size={64} className="text-gold" />
+            </div>
+          </div>
+
+          <div className="space-y-1 select-none">
+            <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">Restablecer Contraseña</h2>
+            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+              Ingresa tu nueva contraseña para acceder a tu cuenta
+            </p>
+          </div>
+
+          <form onSubmit={handleResetPasswordSubmit} className="space-y-4 pt-2 text-left">
+            <div className="space-y-2">
+              <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Nueva Contraseña</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                <input 
+                  type="password"
+                  required
+                  value={resetPassword}
+                  onChange={(e) => setResetPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Confirmar Nueva Contraseña</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                <input 
+                  type="password"
+                  required
+                  value={resetConfirmPassword}
+                  onChange={(e) => setResetConfirmPassword(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            <div className="text-[10px] text-gray-500 font-bold leading-normal bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 flex items-center gap-2 select-none">
+              <span className="text-xs">🔒</span>
+              <span>Mínimo 6 caracteres (letras y números).</span>
+            </div>
+
+            <button 
+              type="submit"
+              disabled={resetLoading}
+              className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-800 disabled:text-gray-600 text-dark py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all mt-6 shadow-[0_0_20px_rgba(212,175,55,0.15)] cursor-pointer"
+            >
+              {resetLoading ? <Loader2 className="animate-spin" size={20} /> : 'RESTABLECER Y ACCEDER'}
+            </button>
+          </form>
+        </GlassCard>
       </div>
     );
   }
