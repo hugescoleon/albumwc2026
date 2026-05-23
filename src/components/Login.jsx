@@ -503,11 +503,11 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
                   {loading ? <Loader2 className="animate-spin" size={20} /> : 'INICIAR SESIÓN'}
                 </button>
 
-                <div className="text-center pt-2">
+                <div className="pt-2">
                   <button 
                     type="button"
                     onClick={() => setIsRegistering(true)}
-                    className="text-gold hover:text-gold-light text-xs font-bold uppercase tracking-wider transition-colors"
+                    className="w-full py-3.5 bg-white/5 hover:bg-gold/10 border border-gold/20 hover:border-gold/50 text-gold hover:text-gold-light font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.98] select-none text-center"
                   >
                     ¿No tienes cuenta? Regístrate aquí
                   </button>
@@ -701,11 +701,11 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
                   {loading ? <Loader2 className="animate-spin" size={20} /> : 'REGISTRARME Y EMPEZAR'}
                 </button>
 
-                <div className="text-center pt-2">
+                <div className="pt-2">
                   <button 
                     type="button"
                     onClick={() => setIsRegistering(false)}
-                    className="text-gold hover:text-gold-light text-xs font-bold uppercase tracking-wider transition-colors"
+                    className="w-full py-3.5 bg-white/5 hover:bg-gold/10 border border-gold/20 hover:border-gold/50 text-gold hover:text-gold-light font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.98] select-none text-center"
                   >
                     ¿Ya tienes cuenta? Inicia Sesión
                   </button>
