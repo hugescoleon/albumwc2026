@@ -29,7 +29,7 @@ const lazyWithRetry = (importFn) => {
   });
 };
 
-const AdminSettings = lazyWithRetry(() => import('./components/AdminSettings').then(m => ({ default: m.AdminSettings })));
+import { AdminSettings } from './components/AdminSettings';
 const SellerMode = lazyWithRetry(() => import('./components/SellerMode').then(m => ({ default: m.SellerMode })));
 
 class ErrorBoundary extends React.Component {
@@ -467,26 +467,28 @@ function App() {
   const adsList = platformConfig.popupAd?.ads || [];
   const currentAd = adsList[currentAdIndex] || adsList[0] || null;
 
+  if (showAdminPanel) {
+    return (
+      <ErrorBoundary>
+        <AdminSettings 
+          config={platformConfig}
+          onUpdate={updatePlatformConfig}
+          onClose={() => setShowAdminPanel(false)}
+        />
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-black text-white selection:bg-gold/30 pb-24">
+      <div className="min-h-screen bg-black text-white selection:bg-gold/30">
         <InterstitialAd 
           isOpen={showAd} 
           onClose={() => setShowAd(false)} 
           adConfig={currentAd}
         />
 
-      {showAdminPanel && (
-        <Suspense fallback={null}>
-          <AdminSettings 
-            config={platformConfig}
-            onUpdate={updatePlatformConfig}
-            onClose={() => setShowAdminPanel(false)}
-          />
-        </Suspense>
-      )}
-
-      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 select-none min-w-0">
             {platformConfig.appLogo && (
@@ -498,9 +500,16 @@ function App() {
                 />
               </div>
             )}
-            <h1 className="text-base sm:text-xl font-black text-gold tracking-tight italic uppercase truncate">
-              {platformConfig.appName}
-            </h1>
+            <div className="flex flex-col min-w-0">
+              <h1 className="text-base sm:text-xl font-black text-gold tracking-tight italic uppercase truncate leading-tight">
+                {platformConfig.appName}
+              </h1>
+              {user && user.role === 'USER' && (
+                <span className="text-[8px] font-black text-cyan-400 uppercase tracking-widest leading-none mt-0.5 animate-pulse truncate">
+                  Visitando a: {user.displayName.replace('Visitando a: ', '')}
+                </span>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center gap-3 shrink-0">
@@ -562,32 +571,33 @@ function App() {
           </div>
         </div>
 
-        {user && (
-          <div className="bg-[#111111]/95 border-t border-white/10 py-1.5 px-4 text-center select-none shadow-inner">
-            <div className="inline-flex items-center justify-center gap-2">
-              {user.role === 'USER' ? (
-                <>
-                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#22d3ee] shrink-0" />
-                  <span className="text-cyan-400 font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs">VISITANDO A:</span>
-                  <span className="text-cyan-300 font-black italic tracking-wide text-sm sm:text-base drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] uppercase">
-                    {user.displayName.replace('Visitando a: ', '')}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <div className="w-2 h-2 rounded-full bg-gold animate-pulse shadow-[0_0_8px_#d4af37] shrink-0" />
-                  <span className="text-gold font-black uppercase tracking-[0.2em] text-[10px] sm:text-xs">MI ÁLBUM:</span>
-                  <span className="text-gold-light font-black italic tracking-wide text-sm sm:text-base drop-shadow-[0_1.5px_3px_rgba(0,0,0,0.8)] uppercase">
-                    {user.displayName || 'Coleccionista'}
-                  </span>
-                </>
-              )}
+        {tabs.length > 1 && (
+          <div className="bg-[#111111]/95 border-t border-white/5 py-2 px-4 shadow-inner flex justify-center select-none">
+            <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 w-full max-w-md shadow-inner">
+              {tabs.map(tab => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => handleTabChange(tab.id)}
+                    className={`flex-1 py-2 px-3 sm:px-4 rounded-lg text-[10px] sm:text-[11px] font-black uppercase tracking-[0.12em] sm:tracking-[0.15em] transition-all cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 ${
+                      isActive 
+                        ? "bg-gold text-dark font-extrabold shadow-md" 
+                        : "text-gray-500 hover:text-gray-300"
+                    }`}
+                  >
+                    <Icon size={14} strokeWidth={isActive ? 3 : 2} />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
       </header>
 
-      <main className="max-w-4xl mx-auto p-3 sm:p-4 pt-1 sm:pt-10 pb-24 sm:pb-12">
+      <main className="max-w-4xl mx-auto p-3 sm:p-4 pt-[116px] pb-12">
         {activeTab === 'dashboard' && isAdmin && (
           <Dashboard 
             stats={stats} 
@@ -645,33 +655,7 @@ function App() {
         </footer>
       </main>
 
-      {tabs.length > 1 && (
-        <nav className="fixed bottom-0 left-0 right-0 z-[100] bg-[#0a0a0a] border-t border-white/5 shadow-2xl pb-[env(safe-area-inset-bottom,12px)]">
-          <div className="max-w-4xl mx-auto flex items-stretch h-[54px]">
-            {tabs.map((tab, index) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              if (!Icon) return null;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id)}
-                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-all duration-500 ${
-                    isActive 
-                      ? "bg-gold text-black shadow-[inset_0_0_20px_rgba(0,0,0,0.1)]" 
-                      : "bg-[#161616] text-gray-600 hover:text-gray-400"
-                  } ${index !== 0 ? 'border-l border-white/5' : ''}`}
-                >
-                  <Icon size={18} strokeWidth={isActive ? 3 : 2} />
-                  <span className={`text-[8px] font-black uppercase tracking-[0.15em]`}>
-                    {tab.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </nav>
-      )}
+
 
       <KoiInfoModal 
         isOpen={showKoiModal} 
@@ -680,7 +664,7 @@ function App() {
 
       {/* FLOATING OFFLINE WARNING BANNER */}
       {isOffline && (
-        <div className="fixed bottom-[70px] left-4 right-4 z-[99] animate-fade-slide-down max-w-sm mx-auto">
+        <div className="fixed bottom-4 left-4 right-4 z-[99] animate-fade-slide-down max-w-sm mx-auto">
           <div className="bg-gradient-to-r from-red-950 via-amber-950 to-red-950 border border-amber-500/30 text-amber-200 px-4 py-3 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.5)] backdrop-blur-md flex items-start gap-3 select-none">
             <div className="p-1 rounded-lg bg-amber-500/10 text-amber-400 shrink-0">
               <svg className="w-5 h-5 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>

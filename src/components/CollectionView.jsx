@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { albumData } from '../data/albumData';
 import { StickerCard } from './StickerCard';
-import { Search, LayoutGrid, List, X } from 'lucide-react';
+import { Search, LayoutGrid, List, X, Plus, Minus } from 'lucide-react';
 import { getSectionTheme, getSectionStickerIds } from '../utils/albumUtils';
 import { clsx } from 'clsx';
 
 export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initialSection, role, stickerNames = {} }) => {
-  const [activeSection, setActiveSection] = useState(initialSection || albumData.sections[0]?.id || null);
+  const [activeSection, setActiveSection] = useState(initialSection || null);
   const [search, setSearch] = useState('');
-  const [viewMode, setViewMode] = useState(role === 'GUEST' ? 'all' : 'sections');
+  const [viewMode, setViewMode] = useState('all');
+  const [expandedSections, setExpandedSections] = useState({});
   const viewRef = React.useRef(null);
+
+  const toggleSection = (sectionId) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionId]: !prev[sectionId]
+    }));
+  };
 
   const selectSection = (sectionId) => {
     setActiveSection(sectionId);
@@ -21,6 +29,23 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }, 50);
+  };
+
+  const handleNavClick = (sectionId) => {
+    setActiveSection(sectionId);
+    if (viewMode === 'sections') {
+      selectSection(sectionId);
+    } else {
+      setExpandedSections(prev => ({ ...prev, [sectionId]: true }));
+      setTimeout(() => {
+        const element = document.getElementById(`section-view-${sectionId}`);
+        if (element) {
+          const yOffset = -120; 
+          const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+      }, 100);
+    }
   };
 
   useEffect(() => {
@@ -37,8 +62,6 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
     setSearch(val);
     if (val.trim() !== '') {
       setActiveSection(null);
-    } else if (!activeSection) {
-      setActiveSection(albumData.sections[0].id);
     }
   };
 
@@ -73,15 +96,6 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
         {role !== 'GUEST' && (
           <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 w-full sm:w-auto shadow-inner">
             <button 
-              onClick={() => setViewMode('sections')}
-              className={clsx(
-                "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
-                viewMode === 'sections' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
-              )}
-            >
-              Equipos
-            </button>
-            <button 
               onClick={() => setViewMode('all')}
               className={clsx(
                 "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
@@ -90,9 +104,66 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
             >
               Todo
             </button>
+            <button 
+              onClick={() => setViewMode('sections')}
+              className={clsx(
+                "flex-1 sm:flex-none py-2 px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.15em] sm:tracking-[0.2em] transition-all cursor-pointer",
+                viewMode === 'sections' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
+              )}
+            >
+              Equipos
+            </button>
           </div>
         )}
       </div>
+
+      {/* NAVIGATION BUTTONS (ALWAYS VISIBLE WHEN NOT SEARCHING) */}
+      {viewMode === 'sections' && search.trim() === '' && (
+        <div className="flex flex-wrap gap-2 justify-center sm:justify-start select-none">
+          {albumData.sections.map(section => {
+            const theme = getSectionTheme(section.id);
+            const pureColor = theme.color.includes('[') ? theme.color.split('[')[1].split(']')[0] : '#D4AF37';
+            const isActive = activeSection === section.id;
+            
+            return (
+              <button
+                key={section.id}
+                onClick={() => handleNavClick(section.id)}
+                className={clsx(
+                  "h-10 w-[62px] rounded-xl text-[13px] font-black transition-all border-2 cursor-pointer active:scale-90",
+                  isActive ? "scale-110 border-white shadow-lg" : "opacity-60 border-transparent hover:opacity-100 hover:scale-105"
+                )}
+                style={{ backgroundColor: pureColor, color: '#fff' }}
+              >
+                {section.id}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {viewMode === 'all' && search.trim() === '' && (
+        <div className="flex justify-end gap-3 px-1 text-xs select-none">
+          <button
+            onClick={() => {
+              const allExpanded = {};
+              albumData.sections.forEach(s => { allExpanded[s.id] = true; });
+              setExpandedSections(allExpanded);
+            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 hover:border-gold hover:bg-gold/10 text-gray-300 hover:text-gold rounded-lg transition-all font-bold cursor-pointer text-[10px] uppercase tracking-wider"
+          >
+            <Plus size={12} />
+            Expandir todos
+          </button>
+          <button
+            onClick={() => setExpandedSections({})}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 hover:border-gold hover:bg-gold/10 text-gray-300 hover:text-gold rounded-lg transition-all font-bold cursor-pointer text-[10px] uppercase tracking-wider"
+          >
+            <Minus size={12} />
+            Colapsar todos
+          </button>
+        </div>
+      )}
 
       {viewMode === 'sections' ? (
         <div className="space-y-6">
@@ -158,27 +229,6 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
             </div>
           ) : (
             <>
-              {/* NAVIGATION */}
-              <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-                {albumData.sections.map(section => {
-                  const theme = getSectionTheme(section.id);
-                  const pureColor = theme.color.includes('[') ? theme.color.split('[')[1].split(']')[0] : '#D4AF37';
-                  return (
-                    <button
-                      key={section.id}
-                      onClick={() => selectSection(section.id)}
-                      className={clsx(
-                        "h-10 w-[62px] rounded-xl text-[13px] font-black transition-all border-2",
-                        activeSection === section.id ? "scale-110 border-white" : "opacity-60 border-transparent"
-                      )}
-                      style={{ backgroundColor: pureColor, color: '#fff' }}
-                    >
-                      {section.id}
-                    </button>
-                  );
-                })}
-              </div>
-
               {/* GRID */}
               <div ref={viewRef} className="space-y-6 scroll-mt-24">
                 {currentSection ? (
@@ -254,20 +304,37 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
                       })}
                     </div>
                   </>
-                ) : null}
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-16 px-4 text-center rounded-3xl border border-white/5 bg-white/[0.01] backdrop-blur-sm animate-fade-slide-down">
+                    <div className="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center text-gray-500 border border-white/10 mb-4 shadow-inner">
+                      <LayoutGrid size={24} className="text-gold" />
+                    </div>
+                    <h4 className="text-base font-black text-white uppercase tracking-wider mb-2">
+                      Selecciona un equipo
+                    </h4>
+                    <p className="text-xs text-gray-500 max-w-[280px]">
+                      Haz clic en cualquiera de los botones superiores para ver y coleccionar sus estampas.
+                    </p>
+                  </div>
+                )}
               </div>
             </>
           )}
         </div>
       ) : (
-        <div className="space-y-12">
+        <div className="space-y-6">
           {albumData.sections.map(section => {
             const theme = getSectionTheme(section.id);
             const pureColor = theme.color.includes('[') ? theme.color.split('[')[1].split(']')[0] : '#D4AF37';
+            const isExpanded = !!expandedSections[section.id];
             
             return (
-              <div key={section.id} className="space-y-4">
-                <div className="flex items-center gap-4 sticky top-[72px] z-20 py-4 bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-white/5">
+              <div key={section.id} id={`section-view-${section.id}`} className="space-y-4 scroll-mt-28">
+                {/* Collapsible Header */}
+                <div 
+                  onClick={() => toggleSection(section.id)}
+                  className="flex items-center gap-4 sticky top-[112px] z-20 py-4 px-3 rounded-2xl bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/5 hover:border-white/10 hover:bg-white/[0.02] cursor-pointer select-none transition-all group"
+                >
                   <div 
                     className="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white text-sm border-2 shadow-2xl shrink-0"
                     style={{ backgroundColor: pureColor, borderColor: 'rgba(255,255,255,0.2)' }}
@@ -277,7 +344,7 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
                   
                   <div className="flex flex-col flex-1 gap-1">
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-black text-white uppercase tracking-tight italic">
+                      <h3 className="text-lg font-black text-white uppercase tracking-tight italic group-hover:text-gold transition-colors">
                         {section.name}
                       </h3>
                       {theme.g && (
@@ -295,32 +362,45 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
                     </div>
                   </div>
 
-                  {theme.flag && (
-                    <div className="shrink-0 ml-2">
-                      <img 
-                        src={`https://flagcdn.com/w160/${theme.flag}.png`} 
-                        className="w-12 h-8 object-cover rounded-lg border-2 border-white/10 shadow-lg" 
-                        alt="" 
-                      />
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className={clsx(
+                      "w-8 h-8 rounded-full border flex items-center justify-center transition-all shadow-inner",
+                      isExpanded 
+                        ? "bg-gold/10 border-gold/30 text-gold scale-105" 
+                        : "bg-white/5 border-white/10 text-gray-400 group-hover:border-white/20 group-hover:text-white"
+                    )}>
+                      {isExpanded ? <Minus size={14} /> : <Plus size={14} />}
                     </div>
-                  )}
+
+                    {theme.flag && (
+                      <div className="shrink-0 ml-2">
+                        <img 
+                          src={`https://flagcdn.com/w160/${theme.flag}.png`} 
+                          className="w-12 h-8 object-cover rounded-lg border border-white/10 shadow-md group-hover:opacity-100 transition-opacity" 
+                          alt="" 
+                        />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4">
-                  {getSectionStickerIds(section.id, section.total).map(id => {
-                    return (
-                      <StickerCard 
-                        key={id} 
-                        id={id} 
-                        data={stickers[id]} 
-                        onToggle={onToggle} 
-                        onUpdateStock={onUpdateStock} 
-                        role={role} 
-                        name={stickerNames[id] || stickerNames[id.replace('-', '')]} 
-                      />
-                    );
-                  })}
-                </div>
+                {isExpanded && (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 pt-2">
+                    {getSectionStickerIds(section.id, section.total).map(id => {
+                      return (
+                        <StickerCard 
+                          key={id} 
+                          id={id} 
+                          data={stickers[id]} 
+                          onToggle={onToggle} 
+                          onUpdateStock={onUpdateStock} 
+                          role={role} 
+                          name={stickerNames[id] || stickerNames[id.replace('-', '')]} 
+                        />
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}

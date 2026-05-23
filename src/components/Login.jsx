@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GlassCard } from './GlassCard';
-import { Trophy, User as UserIcon, Mail, Lock, Loader2, ArrowLeft, Phone, MapPin, Globe } from 'lucide-react';
+import { Trophy, User as UserIcon, Mail, Lock, Loader2, ArrowLeft, Phone, MapPin, Globe, Sparkles, Users, Gift, Heart } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const COUNTRIES = [
@@ -298,427 +298,508 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-green/20 via-dark to-dark">
-      <GlassCard className={`w-full ${isRegistering ? 'max-w-xl' : 'max-w-md'} p-8 text-center space-y-8 border-gold/20 relative transition-all duration-300`}>
-        {error && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-[10px] font-black py-2 px-4 rounded-full shadow-lg animate-in fade-in slide-in-from-top-4 duration-300">
-            {error}
-          </div>
-        )}
+    <div className="min-h-screen flex items-center justify-center p-4 md:p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-green/20 via-dark to-dark">
+      <div className={`flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 w-full ${!showEmailLogin && !isRegistering ? 'max-w-5xl' : 'max-w-md'} transition-all duration-500`}>
+        
+        {/* Info / Community Card (Only shown when not logged in/navigating deep) */}
+        {!showEmailLogin && !isRegistering && (
+          <GlassCard className="w-full lg:max-w-lg p-6 md:p-8 text-left space-y-6 border-gold/15 relative overflow-hidden flex flex-col justify-center order-2 lg:order-1 transition-all duration-300">
+            {/* Premium Auras */}
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-green/10 rounded-full blur-3xl pointer-events-none"></div>
 
-        {/* Dynamic Header */}
-        {!showEmailLogin ? (
-          <>
-            <div className="relative inline-block">
-              <div className="absolute inset-0 blur-2xl bg-gold/20 rounded-full animate-pulse"></div>
-              <div className="relative bg-dark border border-gold/50 p-6 rounded-3xl">
-                <Trophy size={64} className="text-gold" />
+            {/* Badges */}
+            <div className="flex flex-wrap gap-2 self-start select-none">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gold/10 border border-gold/25 text-[10px] font-black text-gold tracking-widest uppercase animate-pulse">
+                <span className="w-1.5 h-1.5 rounded-full bg-gold"></span>
+                100% Gratis & Comunitario
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black text-white/80 tracking-widest uppercase">
+                <span className="text-xs leading-none">🇬🇹</span>
+                <span>Guatemala</span>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <h1 className="text-3xl font-black text-white tracking-tighter leading-tight uppercase">
-                WORLD CUP <br />
-                <span className="text-gold">COLLECTOR HUB</span>
-              </h1>
-              <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Gestor de Colección Profesional</p>
-            </div>
-
-            <div className="space-y-4">
-              {/* Trigger Email/Password Form */}
-              <button 
-                onClick={() => setShowEmailLogin(true)}
-                className="w-full bg-gold hover:bg-gold/90 text-dark font-black py-4 rounded-2xl text-lg flex flex-col items-center justify-center gap-1 shadow-[0_0_30px_rgba(212,175,55,0.2)] transition-all active:scale-95"
-              >
-                <div className="flex items-center gap-2">
-                  <Trophy size={20} />
-                  <span>SOY COLECCIONISTA</span>
-                </div>
-                <span className="text-[10px] opacity-60 font-bold uppercase tracking-widest">Ingresar / Crear Cuenta</span>
-              </button>
-
-              <div className="h-[1px] bg-white/10 my-6 flex items-center justify-center">
-                <span className="bg-dark px-4 text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center">O visita una colección</span>
-              </div>
-
-              {/* Guest Role with Code */}
-              <div className="flex items-center gap-2">
-                <div className="relative flex-1">
-                  <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                  <input 
-                    type="text"
-                    placeholder="Código de Coleccionista..."
-                    value={guestCode}
-                    onChange={(e) => setGuestCode(e.target.value.toUpperCase())}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-gold/50 transition-all uppercase placeholder:normal-case"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleGuestLogin();
-                      }
-                    }}
-                  />
-                </div>
-                <button 
-                  onClick={handleGuestLogin}
-                  disabled={loading || !guestCode.trim()}
-                  className="h-[46px] w-[46px] bg-gold hover:bg-gold-light text-dark font-black rounded-xl flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:hover:bg-gold shrink-0 cursor-pointer"
-                  title="Ver Repetidas (Invitado)"
-                >
-                  {loading ? (
-                    <Loader2 className="animate-spin" size={18} />
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-          </>
-        ) : (
-          /* Email Auth Card (Login or Register) */
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 text-left">
-            <button 
-              onClick={() => {
-                if (showForgotPassword) {
-                  setShowForgotPassword(false);
-                } else {
-                  setShowEmailLogin(false);
-                  setIsRegistering(false);
-                }
-                setError('');
-              }}
-              className="flex items-center gap-2 text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors mb-2 cursor-pointer select-none"
-            >
-              <ArrowLeft size={16} />
-              <span>Volver</span>
-            </button>
-
-            <div className="space-y-1 select-none">
-              <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">
-                {showForgotPassword 
-                  ? 'Recuperar Contraseña' 
-                  : isRegistering 
-                    ? 'Crear Cuenta' 
-                    : 'Acceso Coleccionista'}
+            {/* Title & Headline */}
+            <div className="space-y-2.5">
+              <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase italic leading-none">
+                CREADO POR Y PARA <br />
+                <span className="text-gold">COLECCIONISTAS</span> 🤝
               </h2>
-              <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
-                {showForgotPassword 
-                  ? 'Ingresa tu correo para recibir un enlace de recuperación'
-                  : isRegistering 
-                    ? 'Regístrate para guardar tu colección en la nube' 
-                    : 'Ingresa con tu correo y contraseña'}
+              <p className="text-gray-400 text-xs md:text-sm leading-relaxed font-semibold">
+                Somos un equipo de desarrolladores guatemaltecos 🇬🇹 con un firme sentido social. Nuestra plataforma es una herramienta independiente y gratuita, creada sin fines de lucro con el único objetivo de apoyar al coleccionista y unir a la comunidad.
               </p>
             </div>
 
-            {showForgotPassword ? (
-              /* RECOVERY FORM */
-              <form onSubmit={handleForgotPassword} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Correo Electrónico</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                    <input 
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
-                      placeholder="ejemplo@correo.com"
-                    />
+            {/* Pillars */}
+            <div className="space-y-5 pt-2">
+              {/* Pillar 1: Support */}
+              <div className="flex gap-4 items-start group">
+                <div className="bg-gold/10 border border-gold/30 p-2.5 rounded-xl text-gold shrink-0 group-hover:scale-110 transition-transform duration-300">
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-white uppercase tracking-wider">Apoyo al Coleccionista</h3>
+                  <p className="text-gray-400 text-xs mt-1 leading-relaxed">
+                    Gestiona tu avance, marca repetidas y copia o comparte listas formateadas para WhatsApp en un toque. ¡Olvídate del papel y lápiz!
+                  </p>
+                </div>
+              </div>
+
+              {/* Pillar 2: Community */}
+              <div className="flex gap-4 items-start group">
+                <div className="bg-gold/10 border border-gold/30 p-2.5 rounded-xl text-gold shrink-0 group-hover:scale-110 transition-transform duration-300">
+                  <Users size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-white uppercase tracking-wider">Crear Comunidad</h3>
+                  <p className="text-gray-400 text-xs mt-1 leading-relaxed">
+                    Comparte tu código con amigos para que revisen tus repetidas y faltantes en tiempo real. Intercambia de forma transparente, rápida y sin errores.
+                  </p>
+                </div>
+              </div>
+
+              {/* Pillar 3: Sostenible y Apoyo */}
+              <div className="flex gap-4 items-start group">
+                <div className="bg-gold/10 border border-gold/30 p-2.5 rounded-xl text-gold shrink-0 group-hover:scale-110 transition-transform duration-300">
+                  <Heart size={20} />
+                </div>
+                <div>
+                  <h3 className="text-xs font-black text-white uppercase tracking-wider">100% Gratis y Sostenible</h3>
+                  <p className="text-gray-400 text-xs mt-1 leading-relaxed">
+                    El acceso es gratis. Para cubrir los costos del servidor y recursos del sistema, incluimos anuncios discretos. ¿Quieres apoyarnos? ¡La mejor forma de hacerlo es compartiendo esta webapp con otros coleccionistas!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+        )}
+
+        {/* Access Panel (Login / Register / Guest Input) */}
+        <GlassCard className={`w-full ${isRegistering ? 'max-w-xl animate-fade-slide-down' : 'max-w-md'} p-6 md:p-8 text-center space-y-8 border-gold/25 relative flex flex-col justify-center order-1 lg:order-2 transition-all duration-300`}>
+          {error && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-[10px] font-black py-2 px-4 rounded-full shadow-lg animate-in fade-in slide-in-from-top-4 duration-300">
+              {error}
+            </div>
+          )}
+
+          {/* Dynamic Header */}
+          {!showEmailLogin ? (
+            <>
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 select-none mb-2">
+                {/* Glowing Trophy Badge aligned beside Title */}
+                <div className="relative shrink-0">
+                  <div className="absolute inset-0 blur-xl bg-gold/30 rounded-full animate-pulse"></div>
+                  <div className="relative bg-dark border border-gold/45 p-4 rounded-2xl">
+                    <Trophy size={44} className="text-gold" />
                   </div>
                 </div>
+                
+                <div className="text-center sm:text-left space-y-1">
+                  <h1 className="text-2xl md:text-3xl font-black text-white tracking-tighter leading-tight uppercase">
+                    WORLD CUP <br />
+                    <span className="text-gold">COLLECTOR HUB</span>
+                  </h1>
+                  <p className="text-gray-500 font-bold uppercase tracking-widest text-[9px]">Gestor de Colección Profesional</p>
+                </div>
+              </div>
 
+              <div className="space-y-4">
+                {/* Trigger Email/Password Form */}
                 <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-800 disabled:text-gray-600 text-dark py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all mt-6 shadow-[0_0_20px_rgba(212,175,55,0.15)] cursor-pointer"
+                  onClick={() => setShowEmailLogin(true)}
+                  className="w-full bg-gold hover:bg-gold/90 text-dark font-black py-4 rounded-2xl text-lg flex flex-col items-center justify-center gap-1 shadow-[0_0_30px_rgba(212,175,55,0.2)] transition-all active:scale-95 cursor-pointer"
                 >
-                  {loading ? <Loader2 className="animate-spin" size={20} /> : 'ENVIAR ENLACE DE RECUPERACIÓN'}
+                  <div className="flex items-center gap-2">
+                    <Trophy size={20} />
+                    <span>SOY COLECCIONISTA</span>
+                  </div>
+                  <span className="text-[10px] opacity-60 font-bold uppercase tracking-widest">Ingresar / Crear Cuenta</span>
                 </button>
 
-                <div className="text-center pt-2">
-                  <button 
-                    type="button"
-                    onClick={() => {
-                      setShowForgotPassword(false);
-                      setError('');
-                    }}
-                    className="text-gold hover:text-gold-light text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer bg-transparent border-none p-0 outline-none"
-                  >
-                    Volver al Inicio de Sesión
-                  </button>
-                </div>
-              </form>
-            ) : !isRegistering ? (
-              /* LOGIN FORM */
-              <form onSubmit={handleEmailLogin} className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Correo Electrónico</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                    <input 
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
-                      placeholder="ejemplo@correo.com"
-                    />
-                  </div>
+                <div className="h-[1px] bg-white/10 my-6 flex items-center justify-center">
+                  <span className="bg-dark px-4 text-[10px] text-gray-600 font-bold uppercase tracking-widest text-center">O visita una colección</span>
                 </div>
 
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center ml-1 select-none">
-                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Contraseña</label>
-                    <button 
-                      type="button"
-                      onClick={() => {
-                        setShowForgotPassword(true);
-                        setError('');
+                {/* Guest Role with Code */}
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+                    <input 
+                      type="text"
+                      placeholder="Código de Coleccionista..."
+                      value={guestCode}
+                      onChange={(e) => setGuestCode(e.target.value.toUpperCase())}
+                      className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-gold/50 transition-all uppercase placeholder:normal-case"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          handleGuestLogin();
+                        }
                       }}
-                      className="text-[10px] text-gold hover:text-gold-light font-black uppercase tracking-widest cursor-pointer bg-transparent border-none p-0 outline-none transition-colors"
-                    >
-                      ¿Olvidaste tu contraseña?
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                    <input 
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
-                      placeholder="••••••••"
                     />
                   </div>
-                </div>
-
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-800 disabled:text-gray-600 text-dark py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all mt-6 shadow-[0_0_20px_rgba(212,175,55,0.15)]"
-                >
-                  {loading ? <Loader2 className="animate-spin" size={20} /> : 'INICIAR SESIÓN'}
-                </button>
-
-                <div className="pt-2">
                   <button 
-                    type="button"
-                    onClick={() => setIsRegistering(true)}
-                    className="w-full py-3.5 bg-white/5 hover:bg-gold/10 border border-gold/20 hover:border-gold/50 text-gold hover:text-gold-light font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.98] select-none text-center"
+                    onClick={handleGuestLogin}
+                    disabled={loading || !guestCode.trim()}
+                    className="h-[46px] w-[46px] bg-gold hover:bg-gold-light text-dark font-black rounded-xl flex items-center justify-center transition-all active:scale-95 disabled:opacity-40 disabled:hover:bg-gold shrink-0 cursor-pointer"
+                    title="Ver Repetidas (Invitado)"
                   >
-                    ¿No tienes cuenta? Regístrate aquí
+                    {loading ? (
+                      <Loader2 className="animate-spin" size={18} />
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    )}
                   </button>
                 </div>
-              </form>
-            ) : (
-              /* REGISTRATION FORM (Nombre, Teléfono, Correo, Departamento, País, Contraseñas) */
-              <form onSubmit={handleRegister} className="space-y-4 pt-2">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Nombre */}
+              </div>
+            </>
+          ) : (
+            /* Email Auth Card (Login or Register) */
+            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300 text-left">
+              <button 
+                onClick={() => {
+                  if (showForgotPassword) {
+                    setShowForgotPassword(false);
+                  } else {
+                    setShowEmailLogin(false);
+                    setIsRegistering(false);
+                  }
+                  setError('');
+                }}
+                className="flex items-center gap-2 text-gray-500 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors mb-2 cursor-pointer select-none"
+              >
+                <ArrowLeft size={16} />
+                <span>Volver</span>
+              </button>
+
+              <div className="space-y-1 select-none">
+                <h2 className="text-2xl font-black text-white uppercase italic tracking-tight">
+                  {showForgotPassword 
+                    ? 'Recuperar Contraseña' 
+                    : isRegistering 
+                      ? 'Crear Cuenta' 
+                      : 'Acceso Coleccionista'}
+                </h2>
+                <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">
+                  {showForgotPassword 
+                    ? 'Ingresa tu correo para recibir un enlace de recuperación'
+                    : isRegistering 
+                      ? 'Regístrate para guardar tu colección en la nube' 
+                      : 'Ingresa con tu correo y contraseña'}
+                </p>
+              </div>
+
+              {showForgotPassword ? (
+                /* RECOVERY FORM */
+                <form onSubmit={handleForgotPassword} className="space-y-4 pt-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Nombre y Apellido</label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                      <input 
-                        type="text"
-                        required
-                        value={regName}
-                        onChange={(e) => setRegName(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
-                        placeholder="Juan Pérez"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Teléfono */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Teléfono / Celular</label>
-                    <div className="relative">
-                      <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                      <input 
-                        type="tel"
-                        required
-                        value={regPhone}
-                        onChange={(e) => handlePhoneChange(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
-                        placeholder="+502 1234 5678"
-                      />
-                    </div>
-                  </div>
-
-                  {/* WhatsApp Checkbox */}
-                  <div className="md:col-span-2 bg-white/5 border border-white/10 rounded-xl p-3 flex items-start gap-3 text-left">
-                    <input 
-                      type="checkbox"
-                      id="regUseWhatsapp"
-                      checked={regUseWhatsapp}
-                      onChange={(e) => setRegUseWhatsapp(e.target.checked)}
-                      className="mt-0.5 accent-gold cursor-pointer scale-110"
-                    />
-                    <label htmlFor="regUseWhatsapp" className="cursor-pointer select-none">
-                      <span className="block text-[10px] font-black text-white uppercase tracking-wider">Usar también para WhatsApp (Opcional)</span>
-                      <span className="block text-[9px] text-gray-500 font-bold leading-normal mt-0.5">
-                        Si aceptas, podrás recibir descuentos y promociones directamente en tu WhatsApp.
-                      </span>
-                    </label>
-                  </div>
-
-                  {/* Correo */}
-                  <div className="space-y-2 md:col-span-2">
                     <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Correo Electrónico</label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                       <input 
                         type="email"
                         required
-                        value={regEmail}
-                        onChange={(e) => setRegEmail(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
                         placeholder="ejemplo@correo.com"
                       />
                     </div>
                   </div>
 
-                  {/* País */}
+                  <button 
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-800 disabled:text-gray-600 text-dark py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all mt-6 shadow-[0_0_20px_rgba(212,175,55,0.15)] cursor-pointer"
+                  >
+                    {loading ? <Loader2 className="animate-spin" size={20} /> : 'ENVIAR ENLACE DE RECUPERACIÓN'}
+                  </button>
+
+                  <div className="text-center pt-2">
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setShowForgotPassword(false);
+                        setError('');
+                      }}
+                      className="text-gold hover:text-gold-light text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer bg-transparent border-none p-0 outline-none"
+                    >
+                      Volver al Inicio de Sesión
+                    </button>
+                  </div>
+                </form>
+              ) : !isRegistering ? (
+                /* LOGIN FORM */
+                <form onSubmit={handleEmailLogin} className="space-y-4 pt-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">País</label>
+                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Correo Electrónico</label>
                     <div className="relative">
-                      <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                      <select
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                      <input 
+                        type="email"
                         required
-                        value={regCountry}
-                        onChange={(e) => handleCountryChange(e.target.value)}
-                        className={`w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-gold transition-all text-xs cursor-pointer ${
-                          regCountry ? 'text-white' : 'text-gray-500'
-                        }`}
-                      >
-                        <option value="" disabled className="bg-[#18181b] text-gray-500">Escoger País</option>
-                        {COUNTRIES.map(c => (
-                          <option key={c} value={c} className="bg-[#18181b] text-white">{c}</option>
-                        ))}
-                      </select>
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
+                        placeholder="ejemplo@correo.com"
+                      />
                     </div>
                   </div>
 
-                  {/* Departamento */}
                   <div className="space-y-2">
-                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Departamento / Estado</label>
+                    <div className="flex justify-between items-center ml-1 select-none">
+                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Contraseña</label>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setShowForgotPassword(true);
+                          setError('');
+                        }}
+                        className="text-[10px] text-gold hover:text-gold-light font-black uppercase tracking-widest cursor-pointer bg-transparent border-none p-0 outline-none transition-colors"
+                      >
+                        ¿Olvidaste tu contraseña?
+                      </button>
+                    </div>
                     <div className="relative">
-                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                      {!regCountry ? (
-                        <select
-                          disabled
-                          className="w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-gray-500 focus:outline-none transition-all text-xs cursor-not-allowed"
-                        >
-                          <option value="">Escoger Departamento</option>
-                        </select>
-                      ) : regCountry === 'Guatemala' ? (
-                        <select
-                          required
-                          value={regDept}
-                          onChange={(e) => setRegDept(e.target.value)}
-                          className={`w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-gold transition-all text-xs cursor-pointer ${
-                            regDept ? 'text-white' : 'text-gray-500'
-                          }`}
-                        >
-                          <option value="" disabled className="bg-[#18181b] text-gray-500">Escoger Departamento</option>
-                          {GUATEMALA_DEPARTMENTS.map(d => (
-                            <option key={d} value={d} className="bg-[#18181b] text-white">{d}</option>
-                          ))}
-                        </select>
-                      ) : (
+                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                      <input 
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-sm"
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-800 disabled:text-gray-600 text-dark py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all mt-6 shadow-[0_0_20px_rgba(212,175,55,0.15)] cursor-pointer"
+                  >
+                    {loading ? <Loader2 className="animate-spin" size={20} /> : 'INICIAR SESIÓN'}
+                  </button>
+
+                  <div className="pt-2">
+                    <button 
+                      type="button"
+                      onClick={() => setIsRegistering(true)}
+                      className="w-full py-3.5 bg-white/5 hover:bg-gold/10 border border-gold/20 hover:border-gold/50 text-gold hover:text-gold-light font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.98] select-none text-center"
+                    >
+                      ¿No tienes cuenta? Regístrate aquí
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* REGISTRATION FORM (Nombre, Teléfono, Correo, Departamento, País, Contraseñas) */
+                <form onSubmit={handleRegister} className="space-y-4 pt-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Nombre */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Nombre y Apellido</label>
+                      <div className="relative">
+                        <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
                         <input 
                           type="text"
                           required
-                          value={regDept}
-                          onChange={(e) => setRegDept(e.target.value)}
+                          value={regName}
+                          onChange={(e) => setRegName(e.target.value)}
                           className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
-                          placeholder="Escoger Departamento / Estado"
+                          placeholder="Juan Pérez"
                         />
-                      )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Contraseña */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Contraseña</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                    {/* Teléfono */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Teléfono / Celular</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                        <input 
+                          type="tel"
+                          required
+                          value={regPhone}
+                          onChange={(e) => handlePhoneChange(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
+                          placeholder="+502 1234 5678"
+                        />
+                      </div>
+                    </div>
+
+                    {/* WhatsApp Checkbox */}
+                    <div className="md:col-span-2 bg-white/5 border border-white/10 rounded-xl p-3 flex items-start gap-3 text-left">
                       <input 
-                        type="password"
-                        required
-                        value={regPassword}
-                        onChange={(e) => setRegPassword(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
-                        placeholder="••••••••"
+                        type="checkbox"
+                        id="regUseWhatsapp"
+                        checked={regUseWhatsapp}
+                        onChange={(e) => setRegUseWhatsapp(e.target.checked)}
+                        className="mt-0.5 accent-gold cursor-pointer scale-110"
                       />
+                      <label htmlFor="regUseWhatsapp" className="cursor-pointer select-none">
+                        <span className="block text-[10px] font-black text-white uppercase tracking-wider">Usar también para WhatsApp (Opcional)</span>
+                        <span className="block text-[9px] text-gray-500 font-bold leading-normal mt-0.5">
+                          Si aceptas, podrás recibir descuentos y promociones directamente en tu WhatsApp.
+                        </span>
+                      </label>
+                    </div>
+
+                    {/* Correo */}
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Correo Electrónico</label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                        <input 
+                          type="email"
+                          required
+                          value={regEmail}
+                          onChange={(e) => setRegEmail(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
+                          placeholder="ejemplo@correo.com"
+                        />
+                      </div>
+                    </div>
+
+                    {/* País */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">País</label>
+                      <div className="relative">
+                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                        <select
+                          required
+                          value={regCountry}
+                          onChange={(e) => handleCountryChange(e.target.value)}
+                          className={`w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-gold transition-all text-xs cursor-pointer ${
+                            regCountry ? 'text-white' : 'text-gray-500'
+                          }`}
+                        >
+                          <option value="" disabled className="bg-[#18181b] text-gray-500">Escoger País</option>
+                          {COUNTRIES.map(c => (
+                            <option key={c} value={c} className="bg-[#18181b] text-white">{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Departamento */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Departamento / Estado</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                        {!regCountry ? (
+                          <select
+                            disabled
+                            className="w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 text-gray-500 focus:outline-none transition-all text-xs cursor-not-allowed"
+                          >
+                            <option value="">Escoger Departamento</option>
+                          </select>
+                        ) : regCountry === 'Guatemala' ? (
+                          <select
+                            required
+                            value={regDept}
+                            onChange={(e) => setRegDept(e.target.value)}
+                            className={`w-full bg-[#18181b] border border-white/10 rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:border-gold transition-all text-xs cursor-pointer ${
+                              regDept ? 'text-white' : 'text-gray-500'
+                            }`}
+                          >
+                            <option value="" disabled className="bg-[#18181b] text-gray-500">Escoger Departamento</option>
+                            {GUATEMALA_DEPARTMENTS.map(d => (
+                              <option key={d} value={d} className="bg-[#18181b] text-white">{d}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input 
+                            type="text"
+                            required
+                            value={regDept}
+                            onChange={(e) => setRegDept(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
+                            placeholder="Escoger Departamento / Estado"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Contraseña */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Contraseña</label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                        <input 
+                          type="password"
+                          required
+                          value={regPassword}
+                          onChange={(e) => setRegPassword(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
+                          placeholder="••••••••"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Confirmar Contraseña */}
+                    <div className="space-y-2">
+                      <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Confirmar Contraseña</label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
+                        <input 
+                          type="password"
+                          required
+                          value={regConfirmPassword}
+                          onChange={(e) => setRegConfirmPassword(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
+                          placeholder="••••••••"
+                        />
+                      </div>
                     </div>
                   </div>
 
-                  {/* Confirmar Contraseña */}
-                  <div className="space-y-2">
-                    <label className="text-[10px] text-gray-500 font-black uppercase tracking-widest ml-1">Confirmar Contraseña</label>
-                    <div className="relative">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" size={18} />
-                      <input 
-                        type="password"
-                        required
-                        value={regConfirmPassword}
-                        onChange={(e) => setRegConfirmPassword(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-gold transition-all text-xs"
-                        placeholder="••••••••"
-                      />
-                    </div>
+                  {/* Instrucciones de contraseña */}
+                  <div className="text-[10px] text-gray-500 font-bold leading-normal bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 flex items-center gap-2">
+                    <span className="text-xs">🔒</span>
+                    <span>Mínimo 6 caracteres (letras y números). No se requieren caracteres especiales.</span>
                   </div>
-                </div>
 
-                {/* Instrucciones de contraseña */}
-                <div className="text-[10px] text-gray-500 font-bold leading-normal bg-white/5 border border-white/5 rounded-xl px-4 py-2.5 flex items-center gap-2">
-                  <span className="text-xs">🔒</span>
-                  <span>Mínimo 6 caracteres (letras y números). No se requieren caracteres especiales.</span>
-                </div>
+                  {/* Honeypot field - Invisible to humans, bait for bots */}
+                  <div className="hidden" aria-hidden="true">
+                    <input 
+                      type="text" 
+                      name="website" 
+                      value={honeypot} 
+                      onChange={(e) => setHoneypot(e.target.value)} 
+                      tabIndex="-1" 
+                      autoComplete="off" 
+                    />
+                  </div>
 
-                {/* Honeypot field - Invisible to humans, bait for bots */}
-                <div className="hidden" aria-hidden="true">
-                  <input 
-                    type="text" 
-                    name="website" 
-                    value={honeypot} 
-                    onChange={(e) => setHoneypot(e.target.value)} 
-                    tabIndex="-1" 
-                    autoComplete="off" 
-                  />
-                </div>
-
-                <button 
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-800 disabled:text-gray-600 text-dark py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all mt-6 shadow-[0_0_20px_rgba(212,175,55,0.15)] animate-in fade-in"
-                >
-                  {loading ? <Loader2 className="animate-spin" size={20} /> : 'REGISTRARME Y EMPEZAR'}
-                </button>
-
-                <div className="pt-2">
                   <button 
-                    type="button"
-                    onClick={() => setIsRegistering(false)}
-                    className="w-full py-3.5 bg-white/5 hover:bg-gold/10 border border-gold/20 hover:border-gold/50 text-gold hover:text-gold-light font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.98] select-none text-center"
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gold hover:bg-gold-light disabled:bg-gray-800 disabled:text-gray-600 text-dark py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all mt-6 shadow-[0_0_20px_rgba(212,175,55,0.15)] animate-in fade-in cursor-pointer"
                   >
-                    ¿Ya tienes cuenta? Inicia Sesión
+                    {loading ? <Loader2 className="animate-spin" size={20} /> : 'REGISTRARME Y EMPEZAR'}
                   </button>
-                </div>
-              </form>
-            )}
-          </div>
-        )}
 
-        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.15em] pt-4 select-none">
-          Desarrollado por <button onClick={onShowCredits} className="hover:text-gold transition-all underline decoration-white/10 hover:decoration-red-500 underline-offset-2 font-black cursor-pointer bg-transparent border-none p-0 outline-none"><span className="text-red-500">KOI</span> <span className="text-white/60">software</span></button>
-        </p>
-      </GlassCard>
+                  <div className="pt-2">
+                    <button 
+                      type="button"
+                      onClick={() => setIsRegistering(false)}
+                      className="w-full py-3.5 bg-white/5 hover:bg-gold/10 border border-gold/20 hover:border-gold/50 text-gold hover:text-gold-light font-black text-xs uppercase tracking-widest rounded-xl transition-all duration-300 cursor-pointer active:scale-[0.98] select-none text-center"
+                    >
+                      ¿Ya tienes cuenta? Inicia Sesión
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          )}
+
+          <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.15em] pt-4 select-none">
+            Desarrollado por <button onClick={onShowCredits} className="hover:text-gold transition-all underline decoration-white/10 hover:decoration-red-500 underline-offset-2 font-black cursor-pointer bg-transparent border-none p-0 outline-none"><span className="text-red-500">KOI</span> <span className="text-white/60">software</span></button>
+          </p>
+        </GlassCard>
+      </div>
     </div>
   );
 };

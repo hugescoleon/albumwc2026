@@ -74,7 +74,7 @@ export const InterstitialAd = ({ isOpen, onClose, adConfig }) => {
   if (!isOpen || !adConfig) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/85 animate-in fade-in duration-200">
       <div className="max-w-sm w-full relative">
         {canClose ? (
           <button 

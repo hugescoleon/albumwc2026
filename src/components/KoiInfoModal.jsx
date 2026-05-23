@@ -17,20 +17,17 @@ export const KoiInfoModal = ({ isOpen, onClose, developerConfig }) => {
 
   if (!isOpen) return null;
 
-  // Configuration with Fallback Defaults - Easy to modify contact data!
-  const EMAIL_CONTACT = developerConfig?.email || "info@koisoftware.com";
-  const WHATSAPP_NUMBER = developerConfig?.whatsapp || "50245885656"; // Without + or spaces for the API link
-  const WHATSAPP_DISPLAY = developerConfig?.whatsappDisplay || "+502 4588-5656";
-  const ABOUT_TEXT = developerConfig?.aboutText || "Elevamos ideas innovadoras a experiencias de software premium y aplicaciones a medida de alto impacto visual y tecnológico.";
-  const THANKS_TEXT = developerConfig?.thanksText || "Nuestro más sincero agradecimiento a todos los patrocinadores, socios estratégicos, empresas y colaboradores de la comunidad que han depositado su confianza y apoyo incondicional en el desarrollo, pruebas y puesta en marcha de esta gran plataforma para el coleccionismo 2026.";
+  // Hardcoded Configuration - Modificable únicamente desde el código
+  const EMAIL_CONTACT = "info@koisoftware.com";
+  const WHATSAPP_NUMBER = "50245885656"; // Sin + ni espacios para el link de la API
+  const WHATSAPP_DISPLAY = "+502 4588-5656";
+  const ABOUT_TEXT = "Elevamos ideas innovadoras a experiencias de software premium y aplicaciones a medida de alto impacto visual y tecnológico.";
+  const THANKS_TEXT = "Nuestro más sincero agradecimiento a todos los patrocinadores, socios estratégicos, empresas y colaboradores de la comunidad que han depositado su confianza y apoyo incondicional en el desarrollo, pruebas y puesta en marcha de esta gran plataforma para el coleccionismo 2026.";
   const WHATSAPP_MESSAGE = encodeURIComponent("¡Hola KOI Software! Vengo desde la App Collector 2026 y me interesa conocer más sobre sus servicios de desarrollo.");
 
   const modalContent = (
-    <div className="fixed inset-0 z-[2000] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 select-none animate-in fade-in duration-300">
-      <div className="relative w-full max-w-md bg-[#0e0e0e]/95 border border-white/10 rounded-3xl p-4 sm:p-6 overflow-hidden shadow-[0_15px_50px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 flex flex-col max-h-[95vh]">
-        
-        {/* Ambience glow */}
-        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-48 h-48 bg-gold/10 rounded-full blur-[80px] pointer-events-none" />
+    <div className="fixed inset-0 z-[2000] bg-black/85 flex items-center justify-center p-4 select-none animate-in fade-in duration-200">
+      <div className="relative w-full max-w-md bg-[radial-gradient(circle_at_top,_rgba(212,175,55,0.08)_0%,_#0e0e0e_65%)] border border-white/10 rounded-3xl p-4 sm:p-6 overflow-hidden shadow-[0_15px_50px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-200 flex flex-col max-h-[95vh]">
         
         {/* Close Button */}
         <button 

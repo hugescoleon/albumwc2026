@@ -12,6 +12,7 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
   const [copied, setCopied] = useState(false);
   const [mode, setMode] = useState('repeated'); // 'repeated' or 'missing'
   const [showChecklist, setShowChecklist] = useState(false);
+  const [confirmSticker, setConfirmSticker] = useState(null);
   const isGuest = role === 'GUEST' || role === 'USER';
   const isAdmin = role === 'ADMIN';
   const friendName = user?.displayName?.replace('Visitando a: ', '') || 'este coleccionista';
@@ -92,18 +93,21 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
 
   const totalCount = Object.values(itemsToShow).reduce((acc, items) => acc + items.length, 0);
 
+  if (showChecklist) {
+    return (
+      <ChecklistModal 
+        stickers={stickers} 
+        mode={mode}
+        user={user}
+        onClose={() => setShowChecklist(false)} 
+        appName={appName} 
+        sponsors={sponsors}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4 max-w-4xl mx-auto animate-in fade-in duration-300">
-      {showChecklist && (
-        <ChecklistModal 
-          stickers={stickers} 
-          mode={mode}
-          user={user}
-          onClose={() => setShowChecklist(false)} 
-          appName={appName} 
-          sponsors={sponsors}
-        />
-      )}
 
       {/* Header & Stats */}
       <div className="flex flex-col gap-2">
@@ -136,8 +140,9 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
         </p>
       </div>
 
-      {/* Mode Selector - Sticky & Top */}
-      <div className="sticky top-[108px] sm:top-[72px] z-30 py-1.5 bg-black/95 backdrop-blur-xl -mx-4 px-4 sm:mx-0 sm:px-0 transition-all duration-300">
+      {/* Sticky Header Panel - Mode Selector & Action Buttons */}
+      <div className="sticky top-[112px] z-40 py-2.5 bg-[#0a0a0a]/95 backdrop-blur-xl -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-white/5 shadow-lg flex flex-col gap-3 select-none transition-all duration-300">
+        {/* Mode Selector */}
         <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 w-full shadow-inner">
           <button 
             onClick={() => setMode('repeated')}
@@ -158,39 +163,39 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
             {isGuest ? 'SUS FALTANTES (COMPRA)' : 'MIS FALTANTES'}
           </button>
         </div>
-      </div>
 
-      {/* Action Buttons Below Selector - Animated on mode change */}
-      <div 
-        key={mode} 
-        className="flex gap-2 w-full animate-fade-slide-down"
-      >
-        {isAdmin && (
-          <>
-            <button 
-              onClick={copyList}
-              className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none"
-            >
-              {copied ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
-              {copied ? 'Copiado' : 'Copiar'}
-            </button>
-            <button 
-              onClick={shareList}
-              className="flex-1 px-3 py-2 bg-[#25D366] hover:bg-[#128C7E] rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-green-500/20 cursor-pointer select-none"
-            >
-              <Share2 size={14} /> WhatsApp
-            </button>
-          </>
-        )}
-        <button 
-          onClick={() => setShowChecklist(true)}
-          className={clsx(
-            "px-4 py-2 bg-white text-dark rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all hover:bg-gold cursor-pointer select-none",
-            isAdmin ? "flex-1" : "w-full"
-          )}
+        {/* Action Buttons Below Selector - Animated on mode change */}
+        <div 
+          key={mode} 
+          className="flex gap-2 w-full animate-fade-slide-down"
         >
-          <Grid3x3 size={14} /> Plantilla
-        </button>
+          {isAdmin && (
+            <>
+              <button 
+                onClick={copyList}
+                className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer select-none"
+              >
+                {copied ? <CheckCircle2 size={14} className="text-green-500" /> : <Copy size={14} />}
+                {copied ? 'Copiado' : 'Copiar'}
+              </button>
+              <button 
+                onClick={shareList}
+                className="flex-1 px-3 py-2 bg-[#25D366] hover:bg-[#128C7E] rounded-xl text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-green-500/20 cursor-pointer select-none"
+              >
+                <Share2 size={14} /> WhatsApp
+              </button>
+            </>
+          )}
+          <button 
+            onClick={() => setShowChecklist(true)}
+            className={clsx(
+              "px-4 py-2 bg-white text-dark rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all hover:bg-gold cursor-pointer select-none",
+              isAdmin ? "flex-1" : "w-full"
+            )}
+          >
+            <Grid3x3 size={14} /> Plantilla
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
@@ -268,23 +273,87 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
                 </div>
 
                 {/* Stickers Grid */}
-                <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                  {items.map(item => (
-                    <StickerCard 
-                      key={item.id} 
-                      id={item.id} 
-                      data={stickers[item.id]} 
-                      onToggle={onToggle} 
-                      onUpdateStock={onUpdateStock} 
-                      role={role} 
-                      name={stickerNames[item.id] || stickerNames[item.id.replace('-', '')]} 
-                      hideControls={mode === 'missing'}
-                    />
-                  ))}
-                </div>
+                {mode === 'repeated' ? (
+                  <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                    {items.map(item => (
+                      <StickerCard 
+                        key={item.id} 
+                        id={item.id} 
+                        data={stickers[item.id]} 
+                        onToggle={onToggle} 
+                        onUpdateStock={onUpdateStock} 
+                        role={role} 
+                        name={stickerNames[item.id] || stickerNames[item.id.replace('-', '')]} 
+                        hideControls={false}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                    {items.map(item => {
+                      const displayNum = item.id.split('-')[1];
+                      return (
+                        <div
+                          key={item.id}
+                          onClick={() => {
+                            if (!isGuest) {
+                              setConfirmSticker(item.id);
+                            }
+                          }}
+                          className="h-12 bg-white/5 border border-white/10 hover:border-gold/30 hover:bg-gold/5 rounded-xl flex flex-col items-center justify-center cursor-pointer select-none transition-all active:scale-95 group"
+                        >
+                          <span className="text-[11px] font-black text-white group-hover:text-gold transition-colors tracking-tight leading-tight">
+                            {sectionId} {displayNum}
+                          </span>
+                          <span className="text-[7.5px] font-bold text-gray-500 group-hover:text-gray-400 transition-colors uppercase leading-none truncate max-w-[90%] mt-0.5 px-1">
+                            {stickerNames[item.id] || 'Estampa'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Confirmation Modal */}
+      {confirmSticker && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-[#111111] border border-white/10 rounded-3xl p-6 w-full max-w-sm mx-4 shadow-2xl space-y-6 text-center animate-fade-slide-down">
+            <div className="w-14 h-14 bg-gold/10 border border-gold/20 text-gold rounded-full flex items-center justify-center mx-auto shadow-inner">
+              <CheckCircle2 size={24} className="text-gold" />
+            </div>
+            
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-white uppercase tracking-tight italic">
+                ¿Conseguiste esta estampa?
+              </h3>
+              <p className="text-xs text-gray-400">
+                ¿Deseas marcar la estampa <span className="text-gold font-bold">{confirmSticker}</span> ({stickerNames[confirmSticker] || stickerNames[confirmSticker.replace('-', '')] || 'Sin Nombre'}) como coleccionada e ingresarla a tu álbum?
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmSticker(null)}
+                className="flex-1 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 rounded-xl transition-all font-bold cursor-pointer text-xs uppercase tracking-wider"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => {
+                  onToggle(confirmSticker);
+                  setConfirmSticker(null);
+                }}
+                className="flex-1 py-3 bg-gold hover:bg-gold-light text-dark rounded-xl transition-all font-black cursor-pointer text-xs uppercase tracking-wider shadow-lg shadow-gold/20"
+              >
+                Confirmar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

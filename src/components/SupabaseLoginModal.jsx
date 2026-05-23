@@ -47,7 +47,7 @@ export const SupabaseLoginModal = ({ onLoginSuccess, onClose }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md">
+    <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/85">
       <GlassCard className="max-w-md w-full p-8 space-y-6 border-gold/30">
         <div className="flex justify-between items-start">
           <div className="w-12 h-12 bg-gold/10 rounded-xl flex items-center justify-center text-gold border border-gold/30">

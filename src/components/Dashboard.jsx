@@ -238,7 +238,7 @@ export const Dashboard = ({ stats = {}, user = {}, onNavigateToSection }) => {
 
       {/* GORGEOUS QR CODE INTERACTIVE OVERLAY MODAL */}
       {showQrModal && (
-        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-fade-in">
+        <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 bg-black/85 animate-fade-in">
           <GlassCard className="w-full max-w-sm p-6 sm:p-8 border-gold/30 text-center relative space-y-6 animate-fade-slide-down">
             {/* Close Button */}
             <button 

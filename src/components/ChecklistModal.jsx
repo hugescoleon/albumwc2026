@@ -19,7 +19,7 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
   };
 
   const modalContent = (
-    <div id="checklist-modal-portal" className="fixed inset-0 z-[1000] bg-black/95 backdrop-blur-xl flex items-start justify-center overflow-y-auto p-0 sm:p-4 md:p-8 print:bg-white print:backdrop-blur-none print:overflow-visible">
+    <div id="checklist-modal-portal" className="fixed inset-0 z-[1000] bg-black/96 flex items-start justify-center overflow-y-auto p-0 sm:p-4 md:p-8 print:bg-white print:backdrop-blur-none print:overflow-visible">
       <div className="bg-white w-full max-w-5xl my-0 sm:my-8 sm:rounded-[2.5rem] shadow-2xl flex flex-col relative print:static print:shadow-none print:my-0 print:rounded-none">
         
         {/* Modal Header - Compact & Sticky */}
@@ -73,18 +73,19 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
               </p>
             </div>
 
-            {/* Sponsor Logos - Centered, larger, and solid black */}
-            <div className="hidden print:flex absolute left-1/2 -translate-x-1/2 bottom-0.5 items-end justify-center gap-4">
-              {sponsors.map(s => (
-                <img 
-                  key={s.id} 
-                  src={s.logo} 
-                  className="h-5 object-contain" 
-                  style={{ filter: 'brightness(0)' }} 
-                  alt={s.name} 
-                />
-              ))}
-            </div>
+            {/* Sponsor Logos - Centered, small, and responsive on screen and print */}
+            {sponsors && sponsors.length > 0 && (
+              <div className="flex absolute left-1/2 -translate-x-1/2 bottom-1 items-end justify-center gap-4 select-none">
+                {sponsors.filter(s => s.logo).map(s => (
+                  <img 
+                    key={s.id} 
+                    src={s.logo} 
+                    className="h-4 sm:h-5 object-contain print:brightness-0 opacity-80 hover:opacity-100 transition-opacity" 
+                    alt={s.name} 
+                  />
+                ))}
+              </div>
+            )}
 
             <div className="text-right hidden sm:block print:block">
               <div className="text-5xl font-black italic text-gray-100 select-none leading-none tracking-tighter print:text-xl print:text-gray-200">#2026</div>
