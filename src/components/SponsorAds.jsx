@@ -5,13 +5,19 @@ import { GlassCard } from './GlassCard';
 export const SponsorLogos = ({ sponsors = [] }) => {
   if (sponsors.length === 0) return null;
   
+  const ensureAbsoluteUrl = (url) => {
+    if (!url) return '#';
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    return `https://${url}`;
+  };
+
   return (
     <div className="w-full py-6 mt-6 border-t border-white/5 bg-black/40 overflow-hidden">
       <div className="flex items-center justify-center gap-4 sm:gap-6 flex-wrap px-6">
         {sponsors.map(sponsor => (
           <a 
             key={sponsor.id} 
-            href={sponsor.url} 
+            href={ensureAbsoluteUrl(sponsor.url)} 
             target="_blank" 
             rel="noopener noreferrer" 
             className="group relative"
