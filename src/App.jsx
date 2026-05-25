@@ -442,6 +442,7 @@ function App() {
     return (
       <>
         <Login 
+          sponsors={platformConfig?.sponsors}
           onLogin={loginAsDummy} 
           onAdminLogin={(adminUserData) => {
             setAdminUser(adminUserData);
@@ -644,12 +645,12 @@ function App() {
               <span>SOPORTE Y CONTACTO</span>
             </button>
           </div>
-          <div className="space-y-1">
+          <div className="space-y-2">
             <p className="text-[9px] text-gray-600 font-bold uppercase tracking-[0.2em]">
               © 2026 {platformConfig.appName}
             </p>
-            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.15em] mt-1 select-none">
-              Desarrollado por <button onClick={() => setShowKoiModal(true)} className="hover:text-white transition-all underline decoration-white/10 hover:decoration-red-500 underline-offset-2 font-black cursor-pointer bg-transparent border-none p-0 outline-none"><span className="text-red-500">KOI</span> <span className="text-white/60">software</span></button>
+            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-[0.15em] mt-1 select-none">
+              Desarrollado por <button onClick={() => setShowKoiModal(true)} className="hover:text-gold transition-all underline decoration-white/10 hover:decoration-red-500 underline-offset-2 font-black cursor-pointer bg-transparent border-none p-0 outline-none"><span className="text-red-500">KOI</span> <span className="text-white/80">software</span></button>
             </p>
           </div>
         </footer>

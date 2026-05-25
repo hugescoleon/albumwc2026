@@ -356,9 +356,18 @@ export const CollectionView = ({ stickers = {}, onToggle, onUpdateStock, initial
                     
                     <div className="flex items-center gap-3">
                       <div className="h-1.5 w-16 rounded-full shadow-sm" style={{ backgroundColor: pureColor }} />
-                      <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
-                        {section.total} Estampas
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[11px] font-black text-white">
+                          {(() => {
+                            const collectedCount = getSectionStickerIds(section.id, section.total)
+                              .filter(id => stickers[id]?.inAlbum).length;
+                            return collectedCount;
+                          })()}
+                        </span>
+                        <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
+                          / {section.total} Estampas
+                        </span>
+                      </div>
                     </div>
                   </div>
 

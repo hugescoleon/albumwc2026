@@ -89,47 +89,13 @@ export const KoiInfoModal = ({ isOpen, onClose, developerConfig }) => {
           </div>
 
           {/* Contact Actions */}
-          <div className="space-y-2 pt-1.5">
-            <div className="text-center">
-              <span className="text-[8px] text-gray-500 font-black uppercase tracking-[0.15em]">¿Tienes una gran idea? ¡Hablemos!</span>
-            </div>
-
-            <div className="flex items-center gap-2 w-full">
-              {/* WhatsApp Button */}
-              <a 
-                href={`https://wa.me/${WHATSAPP_NUMBER}?text=${WHATSAPP_MESSAGE}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 bg-[#25D366] hover:bg-[#20ba5a] text-black font-black text-[10px] uppercase tracking-widest py-3 px-3 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-[0_4px_15px_rgba(37,211,102,0.15)] active:scale-95 duration-300"
-              >
-                <MessageCircle size={14} fill="black" />
-                <span>WhatsApp</span>
-              </a>
-
-              {/* Email Icon Button */}
-              <a 
-                href={`mailto:${EMAIL_CONTACT}`}
-                className="w-10 h-10 bg-white/5 hover:bg-white/10 hover:text-gold border border-white/10 text-white rounded-xl flex items-center justify-center transition-all shrink-0 active:scale-95 duration-300"
-                title="Escríbenos por Correo"
-              >
-                <Mail size={14} />
-              </a>
-
-              {/* Portfolio / Website Icon Button */}
-              <a 
-                href="https://koisoftware.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-10 h-10 bg-white/5 hover:bg-white/10 hover:text-gold border border-white/10 text-white rounded-xl flex items-center justify-center transition-all shrink-0 active:scale-95 duration-300"
-                title="Visitar Sitio Web"
-              >
-                <Code size={14} />
-              </a>
-            </div>
-            
-            <div className="text-center text-[8px] text-gray-500 font-bold uppercase tracking-wider">
-              {EMAIL_CONTACT} • WhatsApp: {WHATSAPP_DISPLAY}
-            </div>
+          <div className="space-y-2 pt-2 text-center">
+            <a 
+              href={`mailto:${EMAIL_CONTACT}`}
+              className="block text-gray-400 hover:text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
+            >
+              {EMAIL_CONTACT}
+            </a>
           </div>
 
         </div>

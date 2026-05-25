@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { GlassCard } from './GlassCard';
 import { Trophy, User as UserIcon, Mail, Lock, Loader2, ArrowLeft, Phone, MapPin, Globe, Sparkles, Users, Gift, Heart } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { SponsorLogos } from './SponsorAds';
 
 const COUNTRIES = [
   'Guatemala',
@@ -45,11 +46,12 @@ const GUATEMALA_DEPARTMENTS = [
   'Zacapa'
 ];
 
-export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
+export const Login = ({ onLogin, onAdminLogin, onShowCredits, sponsors }) => {
   const [error, setError] = useState('');
   const [guestCode, setGuestCode] = useState('');
   
   // Toggle Views
+  const [showWelcome, setShowWelcome] = useState(true);
   const [showEmailLogin, setShowEmailLogin] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
@@ -299,11 +301,9 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 md:p-6 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-green/20 via-dark to-dark">
-      <div className={`flex flex-col lg:flex-row items-center lg:items-stretch justify-center gap-6 w-full ${!showEmailLogin && !isRegistering ? 'max-w-5xl' : 'max-w-md'} transition-all duration-500`}>
-        
-        {/* Info / Community Card (Only shown when not logged in/navigating deep) */}
-        {!showEmailLogin && !isRegistering && (
-          <GlassCard className="w-full lg:max-w-lg p-6 md:p-8 text-left space-y-6 border-gold/15 relative overflow-hidden flex flex-col justify-center order-2 lg:order-1 transition-all duration-300">
+      {showWelcome ? (
+        <div className="flex flex-col items-center justify-center gap-6 w-full max-w-lg transition-all duration-500">
+          <GlassCard className="w-full p-6 md:p-8 text-left space-y-6 border-gold/15 relative overflow-hidden flex flex-col justify-center transition-all duration-300">
             {/* Premium Auras */}
             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-48 h-48 bg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
             <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 bg-green/10 rounded-full blur-3xl pointer-events-none"></div>
@@ -372,11 +372,21 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
                 </div>
               </div>
             </div>
+            
+            <div className="pt-2">
+              <button 
+                onClick={() => setShowWelcome(false)}
+                className="w-full bg-gold hover:bg-gold-light text-dark font-black py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-[0_0_20px_rgba(212,175,55,0.15)] cursor-pointer"
+              >
+                CONTINUAR AL INGRESO
+              </button>
+            </div>
           </GlassCard>
-        )}
-
-        {/* Access Panel (Login / Register / Guest Input) */}
-        <GlassCard className={`w-full ${isRegistering ? 'max-w-xl animate-fade-slide-down' : 'max-w-md'} p-6 md:p-8 text-center space-y-8 border-gold/25 relative flex flex-col justify-center order-1 lg:order-2 transition-all duration-300`}>
+        </div>
+      ) : (
+        <div className={`flex flex-col items-center justify-center gap-6 w-full ${isRegistering ? 'max-w-xl animate-fade-slide-down' : 'max-w-md'} transition-all duration-500`}>
+          {/* Access Panel (Login / Register / Guest Input) */}
+          <GlassCard className="w-full p-6 md:p-8 text-center space-y-8 border-gold/25 relative flex flex-col justify-center transition-all duration-300">
           {error && (
             <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-red-500 text-white text-[10px] font-black py-2 px-4 rounded-full shadow-lg animate-in fade-in slide-in-from-top-4 duration-300">
               {error}
@@ -795,11 +805,27 @@ export const Login = ({ onLogin, onAdminLogin, onShowCredits }) => {
             </div>
           )}
 
-          <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.15em] pt-4 select-none">
-            Desarrollado por <button onClick={onShowCredits} className="hover:text-gold transition-all underline decoration-white/10 hover:decoration-red-500 underline-offset-2 font-black cursor-pointer bg-transparent border-none p-0 outline-none"><span className="text-red-500">KOI</span> <span className="text-white/60">software</span></button>
-          </p>
+          <div className="pt-4 space-y-2 select-none">
+            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-[0.15em]">
+              Desarrollado por <button onClick={onShowCredits} className="hover:text-gold transition-all underline decoration-white/10 hover:decoration-red-500 underline-offset-2 font-black cursor-pointer bg-transparent border-none p-0 outline-none"><span className="text-red-500">KOI</span> <span className="text-white/80">software</span></button>
+            </p>
+            <div className="flex flex-col items-center">
+              <a 
+                href="mailto:info@koisoftware.com"
+                className="text-gray-500 hover:text-white text-[9px] font-bold uppercase tracking-wider transition-colors mt-1"
+              >
+                info@koisoftware.com
+              </a>
+            </div>
+          </div>
         </GlassCard>
+        
+        {/* Sponsors below Login */}
+        <div className="w-full animate-in fade-in duration-500">
+          <SponsorLogos sponsors={sponsors} />
+        </div>
       </div>
+      )}
     </div>
   );
 };
