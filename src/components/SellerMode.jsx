@@ -50,31 +50,72 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
 
   const generateTextList = () => {
     const title = (appName || 'WORLD CUP ALBUM 2026').toUpperCase();
-    const isMissingMode = mode === 'missing';
     
-    let text = isMissingMode 
-      ? `👋 ¡Hola! Estoy buscando estas estampitas que me *FALTAN* para mi álbum *${title}*. ¡Me gustaría saber si las tienes disponibles para que intercambiemos o para comprártelas! ⚽️👇\n\n`
-      : `👋 ¡Hola! Te comparto mi lista de *estampitas disponibles* para venta o intercambio de mi álbum *${title}* ⚽️👇:\n\n`;
-    
-    Object.entries(itemsToShow).forEach(([sectionId, items]) => {
-      const section = albumData.sections.find(s => s.id === sectionId);
-      const theme = getSectionTheme(sectionId);
-      
-      let flagEmoji = '⚽';
-      if (theme.flag) {
-        if (theme.flag === 'gb-eng') flagEmoji = '🏴󠁧󠁢󠁥󠁮󠁧󠁿';
-        else if (theme.flag === 'gb-sct') flagEmoji = '🏴󠁧󠁢󠁳󠁣󠁴󠁿';
-        else if (theme.flag.length === 2) {
-          flagEmoji = theme.flag.toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
-        }
-      }
+    // Generate all possible sticker IDs
+    const allStickers = albumData.sections.flatMap(s => 
+      getSectionStickerIds(s.id, s.total)
+    );
 
-      text += `${flagEmoji} *${section?.name || sectionId}*\n`;
-      text += `└─ ${items.map(item => `*${item.num}*${!isMissingMode && item.stock > 1 ? ` (x${item.stock})` : ''}`).join(', ')}\n\n`;
+    const missingObj = {};
+    const repeatedObj = {};
+
+    allStickers.forEach(id => {
+      const data = stickers[id] || {};
+      const sectionId = id.split('-')[0];
+      const num = getStickerDisplayNum(id);
+      
+      // If not in album, it's missing
+      if (!data.inAlbum) {
+        if (!missingObj[sectionId]) missingObj[sectionId] = [];
+        missingObj[sectionId].push({ id, num });
+      }
+      
+      // If stock > 0, it's repeated
+      if (data.stock > 0) {
+        if (!repeatedObj[sectionId]) repeatedObj[sectionId] = [];
+        repeatedObj[sectionId].push({ id, num, stock: data.stock });
+      }
     });
     
+    let text = `👋 ¡Hola! Te comparto mi lista de intercambio para el álbum *${title}* ⚽️👇:\n\n`;
+    
+    if (Object.keys(missingObj).length > 0) {
+      text += `❌ *ME FALTAN:*\n`;
+      Object.entries(missingObj).forEach(([sectionId, items]) => {
+        const section = albumData.sections.find(s => s.id === sectionId);
+        const theme = getSectionTheme(sectionId);
+        let flagEmoji = '⚽';
+        if (theme.flag) {
+          if (theme.flag === 'gb-eng') flagEmoji = '🏴󠁧󠁢󠁥󠁮󠁧󠁿';
+          else if (theme.flag === 'gb-sct') flagEmoji = '🏴󠁧󠁢󠁳󠁣󠁴󠁿';
+          else if (theme.flag.length === 2) {
+            flagEmoji = theme.flag.toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
+          }
+        }
+        text += `${flagEmoji} *${section?.name || sectionId}*: ${items.map(item => item.num).join(', ')}\n`;
+      });
+      text += `\n`;
+    }
+
+    if (Object.keys(repeatedObj).length > 0) {
+      text += `✅ *TENGO REPETIDAS:*\n`;
+      Object.entries(repeatedObj).forEach(([sectionId, items]) => {
+        const section = albumData.sections.find(s => s.id === sectionId);
+        const theme = getSectionTheme(sectionId);
+        let flagEmoji = '⚽';
+        if (theme.flag) {
+          if (theme.flag === 'gb-eng') flagEmoji = '🏴󠁧󠁢󠁥󠁮󠁧󠁿';
+          else if (theme.flag === 'gb-sct') flagEmoji = '🏴󠁧󠁢󠁳󠁣󠁴󠁿';
+          else if (theme.flag.length === 2) {
+            flagEmoji = theme.flag.toUpperCase().replace(/./g, char => String.fromCodePoint(char.charCodeAt(0) + 127397));
+          }
+        }
+        text += `${flagEmoji} *${section?.name || sectionId}*: ${items.map(item => `${item.num}${item.stock > 1 ? `(x${item.stock})` : ''}`).join(', ')}\n`;
+      });
+    }
+    
     const originUrl = window.location.origin;
-    text += `✨ _Generado desde ${appName || 'Mi Inventario'}_\n👉 ¡Lleva el control de tu álbum tú también y regístrate gratis aquí: ${originUrl} ⚽🏆`;
+    text += `\n✨ _Generado desde ${appName || 'Mi Inventario'}_\n👉 ¡Lleva el control de tu álbum tú también y regístrate gratis aquí: ${originUrl} ⚽🏆`;
     return text;
   };
 
@@ -97,7 +138,7 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
     return (
       <ChecklistModal 
         stickers={stickers} 
-        mode={mode}
+        mode="combined"
         user={user}
         onClose={() => setShowChecklist(false)} 
         appName={appName} 

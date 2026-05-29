@@ -30,10 +30,10 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
             </div>
             <div>
               <h2 className="text-sm font-black text-gray-900 uppercase tracking-tighter italic leading-tight">
-                {mode === 'repeated' ? 'En Venta o Intercambio' : 'Faltantes / Por Comprar'}
+                {mode === 'repeated' ? 'En Venta o Intercambio' : mode === 'combined' ? 'Lista de Intercambio' : 'Faltantes / Por Comprar'}
               </h2>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                {mode === 'repeated' ? 'Plantilla de Ventas / Intercambio' : (appName || 'World Cup 2026')}
+                {mode === 'repeated' ? 'Plantilla de Ventas / Intercambio' : mode === 'combined' ? 'Plantilla Combinada' : (appName || 'World Cup 2026')}
               </p>
               {user && (
                 <p className="text-[8px] text-gray-500 font-black uppercase tracking-wider mt-0.5 leading-none">
@@ -66,11 +66,17 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
           <div className="flex items-end justify-between border-b-[2px] border-black pb-3 print:pb-1 print:border-b relative">
             <div className="space-y-0.5">
               <h1 className="text-4xl font-black uppercase leading-[0.8] tracking-tighter print:text-lg">
-                {mode === 'repeated' ? 'En Venta o Intercambio' : 'Faltantes / Por Comprar'}
+                {mode === 'repeated' ? 'En Venta o Intercambio' : mode === 'combined' ? 'Lista de Intercambio' : 'Faltantes / Por Comprar'}
               </h1>
               <p className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em] italic print:text-[6.5px]">
-                {mode === 'repeated' ? 'Mundial 2026 - Mis Repetidas' : 'Mundial 2026 - Mi Progreso'}
+                {mode === 'repeated' ? 'Mundial 2026 - Mis Repetidas' : mode === 'combined' ? 'Mundial 2026 - Faltantes y Repetidas' : 'Mundial 2026 - Mi Progreso'}
               </p>
+              {mode === 'combined' && (
+                <div className="flex gap-3 pt-2 text-[9px] print:text-[6px] font-bold uppercase tracking-wider text-gray-600">
+                   <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 bg-white border border-black/40 rounded-sm shadow-sm"></div> Me Faltan</div>
+                   <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 bg-[#D4AF37] border border-black/40 rounded-sm shadow-sm"></div> Repetidas</div>
+                </div>
+              )}
             </div>
 
             {/* Sponsor Logos - Centered, small, and responsive on screen and print */}
@@ -122,11 +128,23 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                       const num = getStickerDisplayNum(id);
                       const data = stickers[id] || {};
                       
-                      // In repeated mode, active means we have stock > 0
-                      // In missing mode, active means we do NOT have it in album (!inAlbum)
-                      const isActive = mode === 'repeated' 
-                        ? data.stock > 0 
-                        : !data.inAlbum;
+                      const isMissing = !data.inAlbum;
+                      const isRepeated = data.stock > 0;
+                      
+                      let bgClass = 'bg-gray-50 text-gray-200 border-gray-50';
+                      
+                      if (mode === 'combined') {
+                        if (isMissing) {
+                          bgClass = 'bg-white text-black border-black/40 shadow-sm font-black';
+                        } else if (isRepeated) {
+                          bgClass = 'bg-[#D4AF37] text-black border-black/40 shadow-sm font-black';
+                        }
+                      } else {
+                        const isActive = mode === 'repeated' ? isRepeated : isMissing;
+                        if (isActive) {
+                          bgClass = 'bg-white text-black border-black/40 shadow-sm font-black';
+                        }
+                      }
                       
                       return (
                         <div 
@@ -134,10 +152,7 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                           className={`
                             w-6 h-6 flex items-center justify-center text-[9px] font-bold rounded-sm border transition-all
                             print:w-[14px] print:h-[14px] print:text-[6px] print:mb-0.5
-                            ${isActive 
-                              ? 'bg-white text-black border-black/40 shadow-sm font-black' 
-                              : 'bg-gray-50 text-gray-200 border-gray-50'
-                            }
+                            ${bgClass}
                           `}
                         >
                           {num}
