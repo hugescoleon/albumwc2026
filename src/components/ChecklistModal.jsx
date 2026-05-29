@@ -79,7 +79,7 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                   <div className="flex gap-4 text-[9px] print:text-[6px] font-bold uppercase tracking-wider text-gray-600">
                      <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-[#dcfce7] border border-green-400 rounded-none shadow-sm"></div> Me Faltan</div>
                      <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-[#fef08a] border border-yellow-400 rounded-none shadow-sm"></div> Repetidas</div>
-                     <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded-none shadow-sm"></div> Ya la tengo</div>
+                     <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded-none shadow-sm flex items-center justify-center relative"><X size={10} className="text-gray-300 absolute" /></div> Ya la tengo</div>
                   </div>
                 </div>
               )}
@@ -137,13 +137,16 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                       const isMissing = !data.inAlbum;
                       const isRepeated = data.stock > 0;
                       
-                      let bgClass = 'bg-gray-50 text-gray-300 border-gray-200';
+                      let bgClass = 'bg-gray-50 text-gray-400 border-gray-200';
+                      let isYaLaTengo = false;
                       
                       if (mode === 'combined') {
                         if (isMissing) {
                           bgClass = 'bg-[#dcfce7] text-green-900 border-green-400 shadow-sm font-black';
                         } else if (isRepeated) {
                           bgClass = 'bg-[#fef08a] text-yellow-900 border-yellow-400 shadow-sm font-black';
+                        } else {
+                          isYaLaTengo = true;
                         }
                       } else {
                         const isActive = mode === 'repeated' ? isRepeated : isMissing;
@@ -151,6 +154,8 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                           bgClass = mode === 'repeated' 
                             ? 'bg-[#fef08a] text-yellow-900 border-yellow-400 shadow-sm font-black'
                             : 'bg-[#dcfce7] text-green-900 border-green-400 shadow-sm font-black';
+                        } else {
+                          isYaLaTengo = true;
                         }
                       }
                       
@@ -158,12 +163,17 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                         <div 
                           key={id}
                           className={`
-                            w-6 h-6 flex items-center justify-center text-[9px] font-bold rounded-none border transition-all
+                            relative w-6 h-6 flex items-center justify-center text-[9px] font-bold rounded-none border transition-all overflow-hidden
                             print:w-[14px] print:h-[14px] print:text-[6px] print:mb-0.5
                             ${bgClass}
                           `}
                         >
-                          {num}
+                          {isYaLaTengo && (
+                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                              <X size={18} strokeWidth={2.5} className="text-gray-300 opacity-60 print:w-3 print:h-3" />
+                            </div>
+                          )}
+                          <span className="relative z-10 leading-none">{num}</span>
                         </div>
                       );
                     })}
