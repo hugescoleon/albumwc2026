@@ -72,9 +72,15 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                 {mode === 'repeated' ? 'Mundial 2026 - Mis Repetidas' : mode === 'combined' ? 'Mundial 2026 - Faltantes y Repetidas' : 'Mundial 2026 - Mi Progreso'}
               </p>
               {mode === 'combined' && (
-                <div className="flex gap-3 pt-2 text-[9px] print:text-[6px] font-bold uppercase tracking-wider text-gray-600">
-                   <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 bg-white border border-black/40 rounded-sm shadow-sm"></div> Me Faltan</div>
-                   <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 bg-[#D4AF37] border border-black/40 rounded-sm shadow-sm"></div> Repetidas</div>
+                <div className="pt-2">
+                  <p className="text-[9px] print:text-[6.5px] font-black uppercase tracking-widest text-gray-500 mb-1.5">
+                    Guía de colores para identificar tus estampas:
+                  </p>
+                  <div className="flex gap-4 text-[9px] print:text-[6px] font-bold uppercase tracking-wider text-gray-600">
+                     <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-[#dcfce7] border border-green-400 rounded-none shadow-sm"></div> Me Faltan</div>
+                     <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-[#fef08a] border border-yellow-400 rounded-none shadow-sm"></div> Repetidas</div>
+                     <div className="flex items-center gap-1.5"><div className="w-3 h-3 bg-gray-50 border border-gray-200 rounded-none shadow-sm"></div> Ya la tengo</div>
+                  </div>
                 </div>
               )}
             </div>
@@ -131,18 +137,20 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                       const isMissing = !data.inAlbum;
                       const isRepeated = data.stock > 0;
                       
-                      let bgClass = 'bg-gray-50 text-gray-200 border-gray-50';
+                      let bgClass = 'bg-gray-50 text-gray-300 border-gray-200';
                       
                       if (mode === 'combined') {
                         if (isMissing) {
-                          bgClass = 'bg-white text-black border-black/40 shadow-sm font-black';
+                          bgClass = 'bg-[#dcfce7] text-green-900 border-green-400 shadow-sm font-black';
                         } else if (isRepeated) {
-                          bgClass = 'bg-[#D4AF37] text-black border-black/40 shadow-sm font-black';
+                          bgClass = 'bg-[#fef08a] text-yellow-900 border-yellow-400 shadow-sm font-black';
                         }
                       } else {
                         const isActive = mode === 'repeated' ? isRepeated : isMissing;
                         if (isActive) {
-                          bgClass = 'bg-white text-black border-black/40 shadow-sm font-black';
+                          bgClass = mode === 'repeated' 
+                            ? 'bg-[#fef08a] text-yellow-900 border-yellow-400 shadow-sm font-black'
+                            : 'bg-[#dcfce7] text-green-900 border-green-400 shadow-sm font-black';
                         }
                       }
                       
@@ -150,7 +158,7 @@ export const ChecklistModal = ({ stickers = {}, mode = 'missing', user, onClose,
                         <div 
                           key={id}
                           className={`
-                            w-6 h-6 flex items-center justify-center text-[9px] font-bold rounded-sm border transition-all
+                            w-6 h-6 flex items-center justify-center text-[9px] font-bold rounded-none border transition-all
                             print:w-[14px] print:h-[14px] print:text-[6px] print:mb-0.5
                             ${bgClass}
                           `}
