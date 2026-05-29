@@ -10,7 +10,6 @@ import { clsx } from 'clsx';
 export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, onUpdateStock, appName, sponsors }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [copied, setCopied] = useState(false);
-  const [mode, setMode] = useState('repeated'); // 'repeated' or 'missing'
   const [showChecklist, setShowChecklist] = useState(false);
   const [confirmSticker, setConfirmSticker] = useState(null);
   const isGuest = role === 'GUEST' || role === 'USER';
@@ -23,24 +22,27 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
       getSectionStickerIds(s.id, s.total)
     );
 
-    const filtered = allStickers.filter(id => {
+    return allStickers.reduce((acc, id) => {
       const data = stickers[id] || {};
-      if (mode === 'repeated') return data.stock > 0;
-      return !data.inAlbum;
-    });
-
-    return filtered.reduce((acc, id) => {
       const sectionId = id.split('-')[0];
-      if (!acc[sectionId]) acc[sectionId] = [];
-      const data = stickers[id] || {};
       const num = getStickerDisplayNum(id);
-      acc[sectionId].push({ id, num, stock: data.stock || 0 });
+      
+      if (!acc[sectionId]) acc[sectionId] = { missing: [], repeated: [] };
+      
+      if (!data.inAlbum) {
+        acc[sectionId].missing.push({ id, num });
+      }
+      if (data.stock > 0) {
+        acc[sectionId].repeated.push({ id, num, stock: data.stock });
+      }
+      
       return acc;
     }, {});
-  }, [stickers, mode]);
+  }, [stickers]);
 
   const filteredSections = useMemo(() => {
-    return Object.entries(itemsToShow).filter(([sectionId]) => {
+    return Object.entries(itemsToShow).filter(([sectionId, { missing, repeated }]) => {
+      if (missing.length === 0 && repeated.length === 0) return false;
       const section = albumData.sections.find(s => s.id === sectionId);
       const nameMatch = section?.name?.toLowerCase().includes(searchTerm.toLowerCase());
       const idMatch = sectionId.toLowerCase().includes(searchTerm.toLowerCase());
@@ -132,7 +134,8 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const totalCount = Object.values(itemsToShow).reduce((acc, items) => acc + items.length, 0);
+  const totalMissing = Object.values(itemsToShow).reduce((acc, { missing }) => acc + missing.length, 0);
+  const totalRepeated = Object.values(itemsToShow).reduce((acc, { repeated }) => acc + repeated.length, 0);
 
   if (showChecklist) {
     return (
@@ -153,63 +156,23 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
       {/* Header & Stats */}
       <div className="flex flex-col gap-2">
         <h2 className="text-lg sm:text-2xl font-black text-white flex items-center gap-2">
-          {mode === 'repeated' ? (
-            <Package className="text-gold shrink-0" size={20} />
-          ) : (
-            <ClipboardList className="text-blue-400 shrink-0" size={20} />
-          )}
-          {mode === 'repeated' ? (
-            isGuest ? `Estampas que Vende / Cambia` : 'Mi Inventario de Ventas'
-          ) : (
-            isGuest ? `Estampas que Necesita` : 'Mis Faltantes'
-          )}
+          <Package className="text-gold shrink-0" size={20} />
+          {isGuest ? `Inventario de ${friendName}` : 'Mi Inventario de Intercambio'}
         </h2>
         <p className="text-gray-500 text-xs leading-none">
-          {mode === 'repeated' ? (
-            isGuest ? (
-              <>Tiene <span className="text-gold font-bold">{totalCount}</span> estampas disponibles para ti.</>
-            ) : (
-              <>Tienes <span className="text-gold font-bold">{totalCount}</span> estampas disponibles para venta.</>
-            )
+          {isGuest ? (
+            <>Tiene <span className="text-gold font-bold">{totalRepeated}</span> repetidas y busca <span className="text-green-400 font-bold">{totalMissing}</span> estampas.</>
           ) : (
-            isGuest ? (
-              <>Le faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas para completar su álbum.</>
-            ) : (
-              <>Te faltan <span className="text-blue-400 font-bold">{totalCount}</span> estampas por conseguir.</>
-            )
+            <>Tienes <span className="text-gold font-bold">{totalRepeated}</span> repetidas y te faltan <span className="text-green-400 font-bold">{totalMissing}</span> estampas.</>
           )}
         </p>
       </div>
 
-      {/* Sticky Header Panel - Mode Selector & Action Buttons */}
+      {/* Sticky Header Panel - Action Buttons */}
       <div className="sticky top-[112px] z-40 py-2.5 bg-[#0a0a0a]/95 backdrop-blur-xl -mx-4 px-4 sm:mx-0 sm:px-0 border-b border-white/5 shadow-lg flex flex-col gap-3 select-none transition-all duration-300">
-        {/* Mode Selector */}
-        <div className="flex p-1 bg-white/5 rounded-xl border border-white/5 w-full shadow-inner">
-          <button 
-            onClick={() => setMode('repeated')}
-            className={clsx(
-              "flex-1 py-2.5 px-2 sm:px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em] transition-all cursor-pointer",
-              mode === 'repeated' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
-            )}
-          >
-            {isGuest ? 'SUS REPETIDAS' : 'MIS REPETIDAS'}
-          </button>
-          <button 
-            onClick={() => setMode('missing')}
-            className={clsx(
-              "flex-1 py-2.5 px-2 sm:px-4 rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-widest sm:tracking-[0.2em] transition-all cursor-pointer",
-              mode === 'missing' ? "bg-gold text-dark font-extrabold shadow-sm" : "text-gray-500 hover:text-gray-300"
-            )}
-          >
-            {isGuest ? 'SUS FALTANTES (COMPRA)' : 'MIS FALTANTES'}
-          </button>
-        </div>
-
+        
         {/* Action Buttons Below Selector - Animated on mode change */}
-        <div 
-          key={mode} 
-          className="flex gap-2 w-full animate-fade-slide-down"
-        >
+        <div className="flex gap-2 w-full animate-fade-slide-down">
           {isAdmin && (
             <>
               <button 
@@ -254,16 +217,16 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
       {/* Inventory Grid */}
       {filteredSections.length === 0 ? (
         <GlassCard className="p-12 text-center border-dashed border-white/5">
-          {mode === 'repeated' ? <Package size={48} className="mx-auto mb-4 text-gray-800" /> : <CheckCircle2 size={48} className="mx-auto mb-4 text-green-900/20" />}
+          <Package size={48} className="mx-auto mb-4 text-gray-800" />
           <p className="text-gray-500 font-medium">
             {searchTerm 
               ? 'No se encontraron resultados para tu búsqueda.' 
-              : (mode === 'repeated' ? 'No tienes estampas repetidas aún.' : '¡Felicidades! Ya completaste tu álbum.')}
+              : 'No tienes estampas faltantes ni repetidas.'}
           </p>
         </GlassCard>
       ) : (
         <div className="grid grid-cols-1 gap-6">
-          {filteredSections.map(([sectionId, items]) => {
+          {filteredSections.map(([sectionId, { missing, repeated }]) => {
             const section = albumData.sections.find(s => s.id === sectionId);
             const theme = getSectionTheme(sectionId);
             const pureColor = theme.color.includes('[') ? theme.color.split('[')[1].split(']')[0] : '#D4AF37';
@@ -296,8 +259,10 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
                     
                     <div className="flex items-center gap-3">
                       <div className="h-1.5 w-16 rounded-full shadow-sm" style={{ backgroundColor: pureColor }} />
-                      <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">
-                        {items.length} {mode === 'repeated' ? 'Disponibles' : 'Faltantes'}
+                      <span className="text-[10px] font-black uppercase tracking-widest flex gap-2">
+                        {missing.length > 0 && <span className="text-green-400">{missing.length} Faltan</span>}
+                        {missing.length > 0 && repeated.length > 0 && <span className="text-gray-600">•</span>}
+                        {repeated.length > 0 && <span className="text-gold">{repeated.length} Repetidas</span>}
                       </span>
                     </div>
                   </div>
@@ -313,45 +278,60 @@ export const SellerMode = ({ stickers, user, role, stickerNames = {}, onToggle, 
                   )}
                 </div>
 
-                {/* Stickers Grid */}
-                {mode === 'repeated' ? (
-                  <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
-                    {items.map(item => (
-                      <StickerCard 
-                        key={item.id} 
-                        id={item.id} 
-                        data={stickers[item.id]} 
-                        onToggle={onToggle} 
-                        onUpdateStock={onUpdateStock} 
-                        role={role} 
-                        name={stickerNames[item.id] || stickerNames[item.id.replace('-', '')]} 
-                        hideControls={false}
-                      />
-                    ))}
+                {/* Missing Stickers Grid */}
+                {missing.length > 0 && (
+                  <div className="pt-2">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-green-400/70 mb-3 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+                      Me Faltan
+                    </h4>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+                      {missing.map(item => {
+                        const displayNum = item.id.split('-')[1];
+                        return (
+                          <div
+                            key={item.id}
+                            onClick={() => {
+                              if (!isGuest) {
+                                setConfirmSticker(item.id);
+                              }
+                            }}
+                            className="h-12 bg-green-900/10 border border-green-500/20 hover:border-green-400/50 hover:bg-green-400/10 rounded-xl flex flex-col items-center justify-center cursor-pointer select-none transition-all active:scale-95 group shadow-inner"
+                          >
+                            <span className="text-[11px] font-black text-green-100 group-hover:text-green-400 transition-colors tracking-tight leading-tight">
+                              {sectionId} {displayNum}
+                            </span>
+                            <span className="text-[7.5px] font-bold text-green-500/70 group-hover:text-green-400/80 transition-colors uppercase leading-none truncate max-w-[90%] mt-0.5 px-1">
+                              {stickerNames[item.id] || 'Estampa'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                ) : (
-                  <div className="p-4 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
-                    {items.map(item => {
-                      const displayNum = item.id.split('-')[1];
-                      return (
-                        <div
-                          key={item.id}
-                          onClick={() => {
-                            if (!isGuest) {
-                              setConfirmSticker(item.id);
-                            }
-                          }}
-                          className="h-12 bg-white/5 border border-white/10 hover:border-gold/30 hover:bg-gold/5 rounded-xl flex flex-col items-center justify-center cursor-pointer select-none transition-all active:scale-95 group"
-                        >
-                          <span className="text-[11px] font-black text-white group-hover:text-gold transition-colors tracking-tight leading-tight">
-                            {sectionId} {displayNum}
-                          </span>
-                          <span className="text-[7.5px] font-bold text-gray-500 group-hover:text-gray-400 transition-colors uppercase leading-none truncate max-w-[90%] mt-0.5 px-1">
-                            {stickerNames[item.id] || 'Estampa'}
-                          </span>
-                        </div>
-                      );
-                    })}
+                )}
+
+                {/* Repeated Stickers Grid */}
+                {repeated.length > 0 && (
+                  <div className="pt-4">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-gold/70 mb-3 flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 bg-gold rounded-full" />
+                      Tengo Repetidas
+                    </h4>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-3">
+                      {repeated.map(item => (
+                        <StickerCard 
+                          key={item.id} 
+                          id={item.id} 
+                          data={stickers[item.id]} 
+                          onToggle={onToggle} 
+                          onUpdateStock={onUpdateStock} 
+                          role={role} 
+                          name={stickerNames[item.id] || stickerNames[item.id.replace('-', '')]} 
+                          hideControls={false}
+                        />
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
